@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSCAL Compliance Pipeline — Live Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 60px 40px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 300;
+    max-width: 600px;
+    line-height: 1.6;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .header-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .meta-pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .meta-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: pulse 2s infinite;
+  }
+
+  /* ── PIPELINE DIAGRAM ── */
+  .pipeline-section {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 60px;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding: 20px 0;
+    scrollbar-width: none;
+  }
+
+  .pipeline::-webkit-scrollbar { display: none; }
+
+  .pipeline-step {
+    flex: 0 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    min-width: 160px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .pipeline-step:hover, .pipeline-step.active {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+    transform: translateY(-2px);
+  }
+
+  .pipeline-step.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 50%; transform: translateX(-50%);
+    width: 60%; height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .step-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .step-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .step-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .step-badge {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 10px;
+    font-family: var(--mono);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  .badge-done { background: rgba(16,185,129,0.15); color: var(--accent3); }
+  .badge-prog { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .badge-plan { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+  .pipeline-arrow {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    color: var(--border);
+    font-size: 20px;
+  }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── OSCAL VIEWER ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .panel.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .panel-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+  .btn.primary:hover { background: #00b8d9; }
+
+  /* ── CONTROL LIST ── */
+  .control-list {
+    padding: 12px;
+    max-height: 480px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .control-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .control-item:hover { background: var(--surface2); }
+  .control-item.selected { background: rgba(0,212,255,0.06); border-color: rgba(0,212,255,0.2); }
+
+  .ctrl-id {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 80px;
+  }
+
+  .ctrl-name {
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-confirmed { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+  .status-partial { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+  .status-draft { background: var(--muted); }
+  .status-contradicted { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+
+  .status-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    min-width: 90px;
+    text-align: right;
+  }
+
+  .label-confirmed { color: var(--accent3); }
+  .label-partial { color: var(--warn); }
+  .label-draft { color: var(--muted); }
+  .label-contradicted { color: var(--danger); }
+
+  /* ── OSCAL JSON VIEWER ── */
+  .json-viewer {
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    max-height: 480px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .json-key { color: #7dd3fc; }
+  .json-str { color: #86efac; }
+  .json-str.highlight { color: var(--accent); }
+  .json-num { color: #fbbf24; }
+  .json-bool-true { color: var(--accent3); }
+  .json-bool-false { color: var(--danger); }
+  .json-bracket { color: var(--muted); }
+  .json-comment { color: var(--muted); font-style: italic; }
+  .json-indent { padding-left: 18px; }
+  .json-section { margin-bottom: 4px; }
+
+  /* ── EVIDENCE BARS ── */
+  .evidence-panel {
+    padding: 20px;
+  }
+
+  .evidence-tool {
+    margin-bottom: 18px;
+  }
+
+  .evidence-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .tool-name-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .api-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: var(--mono);
+  }
+
+  .api-live { background: rgba(16,185,129,0.15); color: var(--accent3); }
+  .api-pending { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+  .evidence-pct {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .evidence-bar-bg {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .evidence-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .bar-confirmed { background: var(--accent3); }
+  .bar-partial { background: var(--warn); }
+  .bar-pending { background: var(--muted); }
+
+  /* ── RECONCILER OUTPUT ── */
+  .reconciler-output {
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+    max-height: 480px;
+    overflow-y: auto;
+  }
+
+  .log-line {
+    display: flex;
+    gap: 12px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+  }
+
+  .log-time { color: var(--muted); min-width: 85px; }
+  .log-ctrl { color: var(--accent); min-width: 80px; }
+  .log-msg { color: var(--text); flex: 1; }
+  .log-result { min-width: 110px; text-align: right; }
+
+  .result-confirmed { color: var(--accent3); }
+  .result-partial { color: var(--warn); }
+  .result-flagged { color: var(--danger); }
+  .result-skipped { color: var(--muted); }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 40px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    animation: fadeUp 0.6s 0.5s ease both;
+  }
+
+  @media (max-width: 700px) {
+    .stats-bar { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .num-confirmed { color: var(--accent3); }
+  .num-partial { color: var(--warn); }
+  .num-flagged { color: var(--danger); }
+  .num-total { color: var(--accent); }
+  .num-tools { color: var(--accent2); }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 40px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    flex-wrap: gap;
+    gap: 16px;
+  }
+
+  .footer-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 20px;
+  }
+
+  .footer-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .footer-link:hover { color: var(--accent); }
+
+  /* ── FILTER TABS ── */
+  .filter-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 12px 12px 0;
+  }
+
+  .filter-tab {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .filter-tab.active { background: rgba(0,212,255,0.1); border-color: var(--accent); color: var(--accent); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .run-btn-wrap {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .scanning {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  .scan-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 0.8s infinite;
+  }
+  .scan-dot:nth-child(2) { animation-delay: 0.2s; }
+  .scan-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  .toast {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    background: var(--surface2);
+    border: 1px solid var(--accent3);
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent3);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+    max-width: 320px;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .selected-detail {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    background: rgba(0,212,255,0.02);
+    display: none;
+  }
+
+  .selected-detail.visible { display: block; }
+
+  .detail-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+
+  .detail-label:first-child { margin-top: 0; }
+
+  .detail-value {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .tool-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .tool-chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: rgba(124,58,237,0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(124,58,237,0.2);
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="tag">● Live Demo — Compliance as Code</div>
+  <h1>OSCAL <span>Compliance</span><br>Automation Pipeline</h1>
+  <p class="subtitle">Converting stale spreadsheet SSPs into living, evidence-backed OSCAL artifacts — auto-populated from real security tool APIs.</p>
+  <div class="header-meta">
+    <span class="meta-pill"><span class="dot"></span> NIST SP 800-53 Rev 5</span>
+    <span class="meta-pill" style="--accent3:#7c3aed">● OSCAL 1.1.2</span>
+    <span class="meta-pill" style="--accent3:#f59e0b">● 19 Tool Connectors</span>
+    <span class="meta-pill" style="--accent3:#00d4ff">● by-components Architecture</span>
+  </div>
+</header>
+
+<!-- PIPELINE STEPS -->
+<div class="pipeline-section">
+  <div class="section-label">Pipeline Architecture</div>
+  <div class="pipeline" id="pipeline">
+    <div class="pipeline-step active" onclick="selectStep(0)">
+      <div class="step-num">01</div>
+      <div class="step-name">excel_to_oscal.py</div>
+      <div class="step-desc">Convert legacy SSP to OSCAL skeleton with by-components</div>
+      <span class="step-badge badge-done">✓ complete</span>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step" onclick="selectStep(1)">
+      <div class="step-num">02</div>
+      <div class="step-name">wiz_ingest.py</div>
+      <div class="step-desc">GraphQL API — cloud findings → control evidence</div>
+      <span class="step-badge badge-done">✓ complete</span>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step" onclick="selectStep(2)">
+      <div class="step-num">03</div>
+      <div class="step-name">jira_ingest.py</div>
+      <div class="step-desc">JQL queries — process controls, POA&M, change tickets</div>
+      <span class="step-badge badge-done">✓ complete</span>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step" onclick="selectStep(3)">
+      <div class="step-num">04</div>
+      <div class="step-name">tanium_ingest.py</div>
+      <div class="step-desc">Endpoint patch compliance, disk encryption, inventory</div>
+      <span class="step-badge badge-prog">⟳ in progress</span>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step" onclick="selectStep(4)">
+      <div class="step-num">05</div>
+      <div class="step-name">reconcile_oscal.py</div>
+      <div class="step-desc">Evidence vs. claim — 5 outcome states, baseline preserved</div>
+      <span class="step-badge badge-done">✓ complete</span>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step" onclick="selectStep(5)">
+      <div class="step-num">06</div>
+      <div class="step-name">grc_agent.py</div>
+      <div class="step-desc">LLM-assisted narrative drafting for DRAFT-NEEDED controls</div>
+      <span class="step-badge badge-plan">◌ planned</span>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-num num-total" id="stat-total">401</div>
+    <div class="stat-label">Controls</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num num-confirmed" id="stat-confirmed">0</div>
+    <div class="stat-label">Confirmed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num num-partial" id="stat-partial">0</div>
+    <div class="stat-label">Partial</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num num-flagged" id="stat-flagged">0</div>
+    <div class="stat-label">Flagged</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num num-tools">19</div>
+    <div class="stat-label">Tool Connectors</div>
+  </div>
+</div>
+
+<!-- MAIN PANELS -->
+<div class="main-grid">
+
+  <!-- CONTROL BROWSER -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">// Control Browser</span>
+      <div class="panel-actions">
+        <button class="btn" onclick="runReconciler()">▶ Run Reconciler</button>
+      </div>
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterControls('all', this)">All</button>
+      <button class="filter-tab" onclick="filterControls('CONFIRMED', this)">Confirmed</button>
+      <button class="filter-tab" onclick="filterControls('PARTIAL', this)">Partial</button>
+      <button class="filter-tab" onclick="filterControls('DRAFT-NEEDED', this)">Draft Needed</button>
+      <button class="filter-tab" onclick="filterControls('CONTRADICTED', this)">Contradicted</button>
+    </div>
+    <div class="control-list" id="control-list"></div>
+    <div class="selected-detail" id="selected-detail">
+      <div class="detail-label">Implementation Claim (SSP Narrative)</div>
+      <div class="detail-value" id="detail-narrative"></div>
+      <div class="detail-label">Evidence Sources Active</div>
+      <div class="tool-chips" id="detail-tools"></div>
+      <div class="detail-label">Reconciler Outcome</div>
+      <div class="detail-value" id="detail-outcome"></div>
+    </div>
+  </div>
+
+  <!-- OSCAL JSON VIEWER -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">// OSCAL sspp.json</span>
+      <div class="panel-actions">
+        <span class="scanning" id="scan-indicator" style="display:none">
+          <span class="scan-dot"></span><span class="scan-dot"></span><span class="scan-dot"></span> ingesting
+        </span>
+        <button class="btn primary" onclick="simulateIngest()">⚡ Simulate API Ingest</button>
+      </div>
+    </div>
+    <div class="json-viewer" id="json-viewer">
+      <div id="json-content"></div>
+    </div>
+  </div>
+
+  <!-- EVIDENCE PANEL -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">// Evidence Coverage by Tool</span>
+    </div>
+    <div class="evidence-panel" id="evidence-panel"></div>
+  </div>
+
+  <!-- RECONCILER LOG -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">// Reconciler Output Log</span>
+      <div class="panel-actions">
+        <button class="btn" onclick="clearLog()">Clear</button>
+      </div>
+    </div>
+    <div class="reconciler-output" id="reconciler-log">
+      <div style="color: var(--muted); font-size: 12px; padding: 20px; text-align: center;">
+        Click "Run Reconciler" to see output
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-text">OSCAL Compliance Automation Pipeline — NIST SP 800-53 Rev 5</span>
+  <div class="footer-links">
+    <a href="https://github.com/GRCJP/OSCAL-Conversion-and-Compliance-Pipeline" class="footer-link" target="_blank">GitHub Repo →</a>
+    <a href="https://pages.nist.gov/OSCAL/" class="footer-link" target="_blank">NIST OSCAL →</a>
+    <a href="https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final" class="footer-link" target="_blank">SP 800-53 Rev 5 →</a>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const controls = [
+  { id: "AC-2",    name: "Account Management",             status: "CONFIRMED",    tools: ["SailPoint","Jira","AWS IAM"],         narrative: "Account management is implemented through SailPoint IGA for provisioning/deprovisioning workflows, supported by Jira for approval chain documentation and AWS IAM for cloud account governance.", outcome: "SailPoint API confirms 0 accounts inactive >60 days. Jira documents 12 provisioning requests in 90 days, all approved." },
+  { id: "AC-2(3)", name: "Disable Inactive Accounts",      status: "CONFIRMED",    tools: ["SailPoint"],                          narrative: "Inactive accounts are automatically disabled after 60 days of no activity via SailPoint automated policy enforcement.", outcome: "SailPoint confirms policy active. Last run: 0 accounts flagged for deactivation." },
+  { id: "AC-6",    name: "Least Privilege",                status: "PARTIAL",      tools: ["BeyondTrust","SailPoint"],            narrative: "Least privilege is enforced through SailPoint entitlement reviews and BeyondTrust for privileged access. Need-to-know documented per role.", outcome: "SailPoint access reviews 98.3% complete. BeyondTrust API pending integration — privileged session evidence gap." },
+  { id: "AC-17",   name: "Remote Access",                  status: "PARTIAL",      tools: ["Zscaler","ForgeRock"],                narrative: "Remote access requires AAL2 MFA enforced at the network layer via Zscaler and authenticated through ForgeRock.", outcome: "ForgeRock confirms MFA enrollment 96.2%. Zscaler connector pending — boundary protection evidence incomplete." },
+  { id: "AU-2",    name: "Event Logging",                  status: "CONFIRMED",    tools: ["Splunk","GoAnywhere"],                narrative: "Audit events are collected by Splunk SIEM from all system components. Sensitive data transfer events logged via GoAnywhere MFT.", outcome: "Splunk log source coverage confirmed for 47 systems. Retention: 90 days active, archival configured." },
+  { id: "AU-11",   name: "Audit Record Retention",         status: "CONFIRMED",    tools: ["Splunk"],                             narrative: "Audit records are retained for 90 days in active storage and 3 years in archive per policy.", outcome: "Splunk retention policy validated. Archive: 3 years. Active: 90 days. Zero gaps detected." },
+  { id: "CA-5",    name: "Plan of Action & Milestones",    status: "PARTIAL",      tools: ["Jira"],                               narrative: "POA&M items are tracked as labeled Jira tickets with owners, due dates, and milestone tracking.", outcome: "Jira: 7 open POA&M items. 2 overdue (PJ-441, PJ-398). ISSO review needed for overdue items." },
+  { id: "CA-7",    name: "Continuous Monitoring",          status: "CONFIRMED",    tools: ["Wiz","Splunk","New Relic"],           narrative: "Continuous monitoring implemented through Wiz cloud security posture, Splunk SIEM correlation, and New Relic anomaly detection.", outcome: "All three monitoring tools API-confirmed. Wiz: daily scans. Splunk: real-time correlation. New Relic: 99.9% uptime." },
+  { id: "CM-2",    name: "Baseline Configuration",         status: "CONFIRMED",    tools: ["Terraform","Ansible"],                narrative: "Configuration baseline maintained in version-controlled Terraform IaC. Ansible enforces baseline on endpoints.", outcome: "Terraform state validated. All PRs approved before merge. Ansible: last run 100% compliance." },
+  { id: "CM-3",    name: "Configuration Change Control",   status: "CONFIRMED",    tools: ["Jira","Bitbucket","Jenkins"],         narrative: "All configuration changes require Jira change request with SIA field completed, PR approval in Bitbucket, and Jenkins pipeline gate.", outcome: "Jira: 34 change requests in 90 days. SIA completion: 100%. All PRs show documented approvals." },
+  { id: "CM-6",    name: "Configuration Settings",         status: "PARTIAL",      tools: ["Wiz","Ansible"],                      narrative: "Configuration settings enforced via Ansible playbooks against CIS benchmarks. Wiz validates cloud resource configurations.", outcome: "Wiz: 3 CIS benchmark deviations open (MEDIUM). Ansible: 99.2% compliant. Deviations in remediation." },
+  { id: "CM-8",    name: "System Component Inventory",     status: "CONFIRMED",    tools: ["Tanium","AWS EKS"],                   narrative: "Hardware and software inventory maintained by Tanium for endpoints and AWS EKS for container workloads.", outcome: "Tanium: 847 endpoints inventoried. AWS EKS: 23 container images cataloged. Last pull: today." },
+  { id: "CP-9",    name: "System Backup",                  status: "CONFIRMED",    tools: ["AWS Storage"],                        narrative: "System backup performed via AWS Aurora automated backups and S3 versioning with defined retention.", outcome: "AWS: backup completion 100% for last 30 days. Retention: 35 days. Recovery tested quarterly." },
+  { id: "IA-2",    name: "Identification & Authentication","status": "CONFIRMED",  tools: ["ForgeRock","AWS IAM"],                narrative: "Multi-factor authentication enforced for all system accounts through ForgeRock. Privileged accounts require AAL2 minimum.", outcome: "ForgeRock: MFA enrollment 100% privileged, 96.2% standard. No auth events without MFA in 30 days." },
+  { id: "IA-2(1)", name: "MFA — Privileged Accounts",      status: "CONFIRMED",    tools: ["ForgeRock"],                          narrative: "AAL2 MFA enforced for all privileged accounts. Phishing-resistant authenticators deployed for tier-1 admins.", outcome: "ForgeRock: 100% privileged account MFA enrollment confirmed. Last audit: zero exceptions." },
+  { id: "IR-3",    name: "Incident Response Testing",      status: "DRAFT-NEEDED", tools: ["Jira"],                               narrative: "Tabletop exercise records documented in Jira. Annual IR test scheduled.", outcome: "No Jira tabletop exercise record found in last 365 days. ISSO must upload exercise documentation." },
+  { id: "IR-5",    name: "Incident Monitoring",            status: "PARTIAL",      tools: ["Jira","Splunk"],                      narrative: "Security incidents tracked in Jira with SOC ticket workflow. Splunk SIEM generates alerts feeding incident creation.", outcome: "DATA QUALITY NOTE: 47 open by status; 6 unresolved by resolution field. SOC ticket hygiene gap — not a control failure." },
+  { id: "IR-6",    name: "Incident Reporting",             status: "DRAFT-NEEDED", tools: [],                                     narrative: "Incident reporting procedures documented in IR policy. Dual reporting chain required.", outcome: "No automated evidence available. Manual attestation required. ISSO verify dual notification chain is documented." },
+  { id: "RA-5",    name: "Vulnerability Monitoring",       status: "CONFIRMED",    tools: ["Wiz","Tanium"],                       narrative: "Vulnerability scanning performed continuously by Wiz for cloud resources and Tanium for endpoints.", outcome: "Wiz: 47 open CVEs (3 CRITICAL, 12 HIGH). Tanium: critical patch SLA 94.7% compliant. Remediation tracked in Jira." },
+  { id: "SA-10",   name: "Developer Config Management",    status: "CONFIRMED",    tools: ["Bitbucket","Terraform","Jenkins"],    narrative: "All code and infrastructure changes version-controlled in Bitbucket with branch protection. Jenkins enforces security gates.", outcome: "Bitbucket: 100% of merges via approved PR. Jenkins: 0 pipeline security gate bypasses in 30 days." },
+  { id: "SA-11",   name: "Developer Security Testing",     status: "PARTIAL",      tools: ["Wiz","Nexus","BlazeMeter"],           narrative: "Security testing integrated into CI/CD via Wiz IaC scanning, Nexus dependency checks, and BlazeMeter security tests.", outcome: "Wiz IaC scan: active. Nexus: 0 critical CVE components blocked this week. BlazeMeter API pending integration." },
+  { id: "SC-7",    name: "Boundary Protection",            status: "CONFIRMED",    tools: ["Wiz","Zscaler"],                      narrative: "Network boundary protected by Zscaler ZTNA for access control and Wiz for cloud boundary configuration validation.", outcome: "Wiz: 0 critical boundary exposures. 2 MEDIUM open (non-critical services, scheduled remediation)." },
+  { id: "SC-28",   name: "Protection at Rest",             status: "CONFIRMED",    tools: ["AWS Storage","Tanium"],               narrative: "Data at rest encrypted via AWS KMS for cloud storage. Tanium validates full disk encryption on all endpoints.", outcome: "AWS: all S3, Aurora, Redshift resources encrypted. Tanium: 3 endpoints missing FDE — flagged for remediation." },
+  { id: "SI-2",    name: "Flaw Remediation",               status: "PARTIAL",      tools: ["Wiz","Tanium"],                       narrative: "Vulnerabilities remediated per severity SLA: CRITICAL 15 days, HIGH 30 days, MODERATE 90 days.", outcome: "Tanium: critical patch SLA 94.7% (target 100%). 3 endpoints missing critical patches — Jira tickets PJ-501, PJ-502, PJ-503 open." },
+  { id: "SI-4",    name: "System Monitoring",              status: "CONFIRMED",    tools: ["Splunk","New Relic","Wiz"],           narrative: "System monitoring implemented through Splunk SIEM, New Relic APM, and Wiz continuous cloud security monitoring.", outcome: "All three tools API-confirmed active. Splunk: 247 correlation rules active. New Relic: 0 anomaly alerts unaddressed." },
+  { id: "SR-3",    name: "Supply Chain Controls",          status: "DRAFT-NEEDED", tools: ["Nexus"],                              narrative: "Software supply chain controlled via Nexus Sonatype — blocks vulnerable dependencies from entering build pipeline.", outcome: "Nexus API pending. SBOM completeness not yet confirmed. Vendor contract flow-down needs ISSO attestation." },
+];
+
+const tools = [
+  { name: "Wiz",        connected: true,  coverage: 88, bar: "bar-confirmed" },
+  { name: "Jira",       connected: true,  coverage: 76, bar: "bar-confirmed" },
+  { name: "SailPoint",  connected: false, coverage: 0,  bar: "bar-pending" },
+  { name: "Tanium",     connected: true,  coverage: 62, bar: "bar-partial" },
+  { name: "Splunk",     connected: true,  coverage: 91, bar: "bar-confirmed" },
+  { name: "ForgeRock",  connected: true,  coverage: 55, bar: "bar-partial" },
+  { name: "Bitbucket",  connected: true,  coverage: 80, bar: "bar-confirmed" },
+  { name: "Terraform",  connected: true,  coverage: 70, bar: "bar-confirmed" },
+  { name: "AWS IAM",    connected: false, coverage: 0,  bar: "bar-pending" },
+  { name: "BeyondTrust",connected: false, coverage: 0,  bar: "bar-pending" },
+  { name: "Nexus",      connected: false, coverage: 0,  bar: "bar-pending" },
+  { name: "Jenkins",    connected: true,  coverage: 65, bar: "bar-partial" },
+  { name: "New Relic",  connected: true,  coverage: 45, bar: "bar-partial" },
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let selectedControl = null;
+let activeFilter = 'all';
+let logLines = [];
+let statsAnimated = false;
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  renderControlList();
+  renderEvidencePanel();
+  renderJsonViewer(controls[0]);
+  animateStats();
+});
+
+// ── STATS ──────────────────────────────────────────────────────────────────────
+function animateStats() {
+  const confirmed = controls.filter(c => c.status === 'CONFIRMED').length;
+  const partial   = controls.filter(c => c.status === 'PARTIAL').length;
+  const flagged   = controls.filter(c => c.status === 'DRAFT-NEEDED' || c.status === 'CONTRADICTED').length;
+
+  animateNum('stat-confirmed', 0, confirmed, 1200);
+  animateNum('stat-partial',   0, partial,   1400);
+  animateNum('stat-flagged',   0, flagged,   1600);
+}
+
+function animateNum(id, from, to, duration) {
+  const el = document.getElementById(id);
+  const start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * ease);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ── CONTROL LIST ───────────────────────────────────────────────────────────────
+function renderControlList() {
+  const list = document.getElementById('control-list');
+  const filtered = activeFilter === 'all' ? controls : controls.filter(c => c.status === activeFilter);
+
+  list.innerHTML = filtered.map((c, i) => `
+    <div class="control-item ${selectedControl === c.id ? 'selected' : ''}"
+         onclick="selectControl('${c.id}')" style="animation: fadeUp 0.3s ${i*0.03}s ease both">
+      <div class="ctrl-id">${c.id}</div>
+      <div class="ctrl-name">${c.name}</div>
+      <span class="status-label label-${c.status.toLowerCase().replace('-','')}">${c.status}</span>
+      <div class="status-dot status-${c.status.toLowerCase().replace('-','').replace('needed','draft')}"></div>
+    </div>
+  `).join('');
+}
+
+function filterControls(filter, btn) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderControlList();
+}
+
+function selectControl(id) {
+  const ctrl = controls.find(c => c.id === id);
+  if (!ctrl) return;
+  selectedControl = id;
+  renderControlList();
+  renderJsonViewer(ctrl);
+
+  const detail = document.getElementById('selected-detail');
+  detail.classList.add('visible');
+  document.getElementById('detail-narrative').textContent = ctrl.narrative;
+  document.getElementById('detail-outcome').textContent = ctrl.outcome;
+
+  const chips = document.getElementById('detail-tools');
+  chips.innerHTML = ctrl.tools.length
+    ? ctrl.tools.map(t => `<span class="tool-chip">${t}</span>`).join('')
+    : '<span style="color:var(--muted);font-size:12px">No automated evidence — manual attestation required</span>';
+}
+
+// ── JSON VIEWER ────────────────────────────────────────────────────────────────
+function renderJsonViewer(ctrl) {
+  const statusColor = {
+    'CONFIRMED': 'json-bool-true',
+    'PARTIAL': 'json-str',
+    'DRAFT-NEEDED': 'json-bool-false',
+    'CONTRADICTED': 'json-bool-false'
+  };
+
+  const toolSlots = ctrl.tools.map(t => `
+<div class="json-indent json-indent">
+  <span class="json-bracket">{</span>
+  <div class="json-indent">
+    <span class="json-key">"component-uuid"</span>: <span class="json-str">"${uuid(t)}"</span>,<br>
+    <span class="json-key">"description"</span>: <span class="json-str">"${t} — evidence populated by API connector"</span>,<br>
+    <span class="json-key">"implementation-status"</span>: <span class="json-bracket">{ </span><span class="json-key">"state"</span>: <span class="json-bool-true">"implemented"</span> <span class="json-bracket">}</span>,<br>
+    <span class="json-key">"props"</span>: <span class="json-bracket">[</span>
+    <div class="json-indent">
+      <span class="json-bracket">{ </span><span class="json-key">"name"</span>: <span class="json-str">"api-ready"</span>, <span class="json-key">"value"</span>: <span class="json-bool-true">"true"</span> <span class="json-bracket">}</span>,<br>
+      <span class="json-bracket">{ </span><span class="json-key">"name"</span>: <span class="json-key">"last-api-pull"</span>, <span class="json-key">"value"</span>: <span class="json-str highlight">"${new Date().toISOString().slice(0,19)}Z"</span> <span class="json-bracket">}</span>
+    </div>
+    <span class="json-bracket">]</span>
+  </div>
+  <span class="json-bracket">}</span>
+</div>`).join(',\n');
+
+  document.getElementById('json-content').innerHTML = `
+<span class="json-bracket">{</span>
+<div class="json-indent">
+  <span class="json-key">"system-security-plan"</span>: <span class="json-bracket">{</span>
+  <div class="json-indent">
+    <span class="json-key">"control-implementation"</span>: <span class="json-bracket">{</span>
+    <div class="json-indent">
+      <span class="json-key">"implemented-requirements"</span>: <span class="json-bracket">[{</span>
+      <div class="json-indent">
+        <span class="json-key">"uuid"</span>: <span class="json-str">"${uuid(ctrl.id)}"</span>,<br>
+        <span class="json-key">"control-id"</span>: <span class="json-str highlight">"${ctrl.id.toLowerCase().replace('(','-').replace(')','')}"</span>,<br>
+        <span class="json-key">"props"</span>: <span class="json-bracket">[</span>
+        <div class="json-indent">
+          <span class="json-bracket">{ </span><span class="json-key">"name"</span>: <span class="json-str">"reconciler-status"</span>, <span class="json-key">"value"</span>: <span class="${statusColor[ctrl.status]}">"${ctrl.status}"</span> <span class="json-bracket">}</span>,<br>
+          <span class="json-bracket">{ </span><span class="json-key">"name"</span>: <span class="json-str">"evidence-sources"</span>, <span class="json-key">"value"</span>: <span class="json-str">"${ctrl.tools.join(', ') || 'none'}"</span> <span class="json-bracket">}</span>
+        </div>
+        <span class="json-bracket">]</span>,<br>
+        <span class="json-key">"statements"</span>: <span class="json-bracket">[{</span>
+        <div class="json-indent">
+          <span class="json-key">"statement-id"</span>: <span class="json-str">"${ctrl.id.toLowerCase()}_stmt"</span>,<br>
+          <span class="json-key">"by-components"</span>: <span class="json-bracket">[</span>
+          <div class="json-indent">
+            <span class="json-comment">// Primary — SSP narrative (the claim)</span>
+            <div class="json-indent">
+              <span class="json-bracket">{</span>
+              <div class="json-indent">
+                <span class="json-key">"component-uuid"</span>: <span class="json-str">"this-system"</span>,<br>
+                <span class="json-key">"description"</span>: <span class="json-str">"${ctrl.narrative.slice(0,80)}..."</span>,<br>
+                <span class="json-key">"implementation-status"</span>: <span class="json-bracket">{ </span><span class="json-key">"state"</span>: <span class="${statusColor[ctrl.status]}">"${ctrl.status === 'CONFIRMED' ? 'implemented' : 'planned'}"</span> <span class="json-bracket">}</span>,<br>
+                <span class="json-key">"props"</span>: <span class="json-bracket">[</span>
+                <div class="json-indent">
+                  <span class="json-bracket">{ </span><span class="json-key">"name"</span>: <span class="json-str">"last-reconciled"</span>, <span class="json-key">"value"</span>: <span class="json-str highlight">"${new Date().toISOString().slice(0,10)}"</span> <span class="json-bracket">}</span>
+                </div>
+                <span class="json-bracket">]</span>
+              </div>
+              <span class="json-bracket">}</span>
+            </div>,
+            <div class="json-indent">
+              <span class="json-comment">// Tool slots — evidence layer</span>
+              ${toolSlots || '<span class="json-comment">// No automated tool connectors for this control</span>'}
+            </div>
+          </div>
+          <span class="json-bracket">]</span>
+        </div>
+        <span class="json-bracket">}]</span>
+      </div>
+      <span class="json-bracket">}]</span>
+    </div>
+    <span class="json-bracket">}</span>
+  </div>
+  <span class="json-bracket">}</span>
+</div>
+<span class="json-bracket">}</span>`;
+}
+
+// ── EVIDENCE PANEL ─────────────────────────────────────────────────────────────
+function renderEvidencePanel() {
+  const panel = document.getElementById('evidence-panel');
+  panel.innerHTML = tools.map(t => `
+    <div class="evidence-tool">
+      <div class="evidence-header">
+        <span class="tool-name-label">
+          ${t.name}
+          <span class="api-badge ${t.connected ? 'api-live' : 'api-pending'}">
+            ${t.connected ? '● API Live' : '○ Pending'}
+          </span>
+        </span>
+        <span class="evidence-pct">${t.connected ? t.coverage + '%' : '—'}</span>
+      </div>
+      <div class="evidence-bar-bg">
+        <div class="evidence-bar-fill ${t.bar}" style="width: 0%"
+             data-target="${t.connected ? t.coverage : 0}"></div>
+      </div>
+    </div>
+  `).join('');
+
+  // Animate bars
+  setTimeout(() => {
+    document.querySelectorAll('.evidence-bar-fill').forEach(bar => {
+      bar.style.width = bar.dataset.target + '%';
+    });
+  }, 400);
+}
+
+// ── RECONCILER ─────────────────────────────────────────────────────────────────
+function runReconciler() {
+  const log = document.getElementById('reconciler-log');
+  log.innerHTML = '';
+  logLines = [];
+
+  const now = new Date();
+  let delay = 0;
+
+  // Header
+  addLog(0, '──', '────────────────────────────────────────────────', '', '');
+  addLog(0, '  ', 'OSCAL Reconciler — Closing the Split Reality Gap', '', '');
+  addLog(0, '──', '────────────────────────────────────────────────', '', '');
+
+  controls.forEach((ctrl, i) => {
+    delay += 80;
+    const t = new Date(now.getTime() + delay);
+    const timeStr = t.toTimeString().slice(0,8);
+
+    let result, cls;
+    switch(ctrl.status) {
+      case 'CONFIRMED':    result = 'CONFIRMED'; cls = 'result-confirmed'; break;
+      case 'PARTIAL':      result = 'PARTIAL';   cls = 'result-partial';   break;
+      case 'DRAFT-NEEDED': result = 'FLAGGED';   cls = 'result-flagged';   break;
+      default:             result = 'SKIPPED';   cls = 'result-skipped';
+    }
+
+    const msg = ctrl.status === 'CONFIRMED'
+      ? `Evidence confirmed via: ${ctrl.tools.slice(0,2).join(', ')}`
+      : ctrl.status === 'PARTIAL'
+      ? `Partial — ${ctrl.tools.length} tools active, gaps remain`
+      : `No automated evidence — ISSO review required`;
+
+    addLog(delay, timeStr, ctrl.id, msg, `<span class="${cls}">${result}</span>`);
+  });
+
+  // Summary
+  delay += 200;
+  const confirmed = controls.filter(c => c.status === 'CONFIRMED').length;
+  const partial   = controls.filter(c => c.status === 'PARTIAL').length;
+  const flagged   = controls.filter(c => c.status === 'DRAFT-NEEDED').length;
+
+  addLog(delay, '──', '────────────────────────────────────────────────', '', '');
+  addLog(delay + 50, '  ', `Reconciled: ${confirmed}  Partial: ${partial}  Flagged: ${flagged}`, '', '');
+  addLog(delay + 100, '──', '────────────────────────────────────────────────', '', '');
+
+  showToast(`Reconciler complete — ${confirmed} confirmed, ${partial} partial, ${flagged} flagged`);
+}
+
+function addLog(delay, time, ctrl, msg, result) {
+  const log = document.getElementById('reconciler-log');
+  setTimeout(() => {
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.innerHTML = `
+      <span class="log-time">${time}</span>
+      <span class="log-ctrl">${ctrl}</span>
+      <span class="log-msg">${msg}</span>
+      <span class="log-result">${result}</span>
+    `;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  }, delay);
+}
+
+// ── INGEST SIMULATION ──────────────────────────────────────────────────────────
+function simulateIngest() {
+  const indicator = document.getElementById('scan-indicator');
+  indicator.style.display = 'inline-flex';
+
+  // Animate evidence bars going up
+  const bars = document.querySelectorAll('.evidence-bar-fill');
+  bars.forEach(bar => {
+    const current = parseInt(bar.style.width);
+    const boost = Math.min(current + Math.floor(Math.random() * 12), 100);
+    bar.style.width = bar.dataset.target > 0 ? boost + '%' : '0%';
+  });
+
+  const ctrl = controls.find(c => c.id === selectedControl) || controls[0];
+  renderJsonViewer(ctrl);
+
+  showToast('API ingest complete — evidence slots updated. Run reconciler to process.');
+
+  setTimeout(() => {
+    indicator.style.display = 'none';
+  }, 2500);
+}
+
+// ── PIPELINE STEPS ─────────────────────────────────────────────────────────────
+const stepDetails = [
+  { desc: 'Reads legacy Excel SSP. Builds OSCAL skeleton with by-components structure. UUID v5 stable identifiers. One evidence slot per tool per control.' },
+  { desc: 'Connects to Wiz GraphQL API. Pulls raw findings — not compliance posture. Maps findings to NIST controls dynamically at ingest time.' },
+  { desc: 'JQL queries pull process control evidence: account request tickets, change requests with SIA, incident tracking, POA&M items.' },
+  { desc: 'Endpoint patch compliance by severity SLA. Disk encryption status. Software inventory. CSV fallback for on-prem instances.' },
+  { desc: 'Reads SSP claim vs. tool evidence. Five outcome states: CONFIRMED / PARTIAL / CONTRADICTED / UNDOCUMENTED / DRAFT-NEEDED. Baseline narrative preserved.' },
+  { desc: 'LLM-assisted narrative drafting for DRAFT-NEEDED controls. Multi-backend: AWS Bedrock, Ollama (air-gapped), OpenAI. ISSO reviews all drafts.' },
+];
+
+function selectStep(i) {
+  document.querySelectorAll('.pipeline-step').forEach((s, j) => {
+    s.classList.toggle('active', i === j);
+  });
+  showToast(stepDetails[i].desc);
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function uuid(seed) {
+  // Deterministic-looking UUID from seed string
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0;
+  const hex = Math.abs(h).toString(16).padStart(8, '0');
+  return `${hex}-9dad-5${hex.slice(0,3)}-80b4-${hex}${hex.slice(0,4)}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function clearLog() {
+  document.getElementById('reconciler-log').innerHTML =
+    '<div style="color: var(--muted); font-size: 12px; padding: 20px; text-align: center;">Click "Run Reconciler" to see output</div>';
+}
+</script>
+</body>
+</html>
