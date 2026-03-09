@@ -1,0 +1,271 @@
+{
+  "system-security-plan": {
+    "uuid": "a3f7c812-9dad-5001-80b4-00c04fd430c8",
+    "metadata": {
+      "title": "Sample System Security and Privacy Plan (SSPP)",
+      "last-modified": "2025-01-15T09:23:11Z",
+      "version": "2.0",
+      "oscal-version": "1.1.2",
+      "remarks": "Sample output from excel_to_oscal.py v2 + wiz_ingest.py + jira_ingest.py + reconcile_oscal.py. Org-specific data has been replaced with representative placeholder values. Demonstrates the by-components structure, has_data gate, and five reconciler outcome states."
+    },
+    "system-characteristics": {
+      "system-name": "Sample Shared Services Platform",
+      "system-name-short": "SSP-SAMPLE",
+      "description": "Illustrative system description. Replace with your actual system boundary.",
+      "security-sensitivity-level": "moderate",
+      "status": { "state": "operational" }
+    },
+    "system-implementation": {
+      "components": [
+        {
+          "uuid": "c1a2b3c4-0001-5000-8000-000000000001",
+          "type": "this-system",
+          "title": "Sample Shared Services Platform",
+          "status": { "state": "operational" }
+        },
+        {
+          "uuid": "c1a2b3c4-0001-5000-8000-000000000002",
+          "type": "software",
+          "title": "Wiz Cloud Security Platform",
+          "props": [
+            { "name": "tool-key", "value": "wiz" },
+            { "name": "evidence-type", "value": "Technical Configuration" },
+            { "name": "api-ready", "value": "true" }
+          ],
+          "status": { "state": "operational" }
+        },
+        {
+          "uuid": "c1a2b3c4-0001-5000-8000-000000000003",
+          "type": "software",
+          "title": "Jira",
+          "props": [
+            { "name": "tool-key", "value": "jira" },
+            { "name": "evidence-type", "value": "Process Controls & POA&M" },
+            { "name": "api-ready", "value": "true" }
+          ],
+          "status": { "state": "operational" }
+        },
+        {
+          "uuid": "c1a2b3c4-0001-5000-8000-000000000004",
+          "type": "software",
+          "title": "Tanium Endpoint Management",
+          "props": [
+            { "name": "tool-key", "value": "tanium" },
+            { "name": "evidence-type", "value": "Endpoint Compliance" },
+            { "name": "api-ready", "value": "true" }
+          ],
+          "status": { "state": "operational" }
+        },
+        {
+          "uuid": "c1a2b3c4-0001-5000-8000-000000000005",
+          "type": "software",
+          "title": "SailPoint Identity Security Cloud",
+          "props": [
+            { "name": "tool-key", "value": "sailpoint" },
+            { "name": "evidence-type", "value": "Identity Governance" },
+            { "name": "api-ready", "value": "false" }
+          ],
+          "status": { "state": "operational" }
+        }
+      ]
+    },
+    "control-implementation": {
+      "description": "Implementation of NIST SP 800-53 Rev 5 moderate baseline. by-components structure captures shared responsibility across the tool stack. API connectors populate tool-specific evidence slots daily.",
+      "implemented-requirements": [
+
+        {
+          "uuid": "req-ac-2-0001-5000-8000-sample000001",
+          "control-id": "ac-2",
+          "props": [
+            { "name": "reconciler-status", "value": "CONFIRMED" },
+            { "name": "evidence-sources", "value": "jira, sailpoint" },
+            { "name": "last-reconciled", "value": "2025-01-15T09:23:11Z" }
+          ],
+          "statements": [{
+            "statement-id": "ac-2_stmt",
+            "uuid": "stmt-ac-2-0001-5000-8000-sample000001",
+            "by-components": [
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000001",
+                "description": "[AUTO-RECONCILED 2025-01-15] Control implementation validated by: Jira, SailPoint. Jira documents 14 account provisioning requests in last 90 days — all with documented approval chains. SailPoint confirms account lifecycle workflows active. Original SSP baseline: Account management is implemented through the identity governance platform for provisioning and deprovisioning, with Jira tracking all access requests and approvals. [ISSO review recommended before submission.]",
+                "implementation-status": { "state": "implemented" },
+                "props": [
+                  { "name": "last-reconciled", "value": "2025-01-15T09:23:11Z" },
+                  { "name": "reconciled-by", "value": "reconcile_oscal.py" },
+                  { "name": "evidence-sources-active", "value": "jira" }
+                ]
+              },
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000003",
+                "description": "Jira account management process evidence as of 2025-01-15T08:01:00Z. 14 account requests in last 90 days. 14 resolved. Average resolution time: 3.2 hours.",
+                "implementation-status": { "state": "implemented" },
+                "props": [
+                  { "name": "tool-name", "value": "jira" },
+                  { "name": "api-ready", "value": "true" },
+                  { "name": "last-api-pull", "value": "2025-01-15T08:01:00Z" }
+                ]
+              },
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000005",
+                "description": "SailPoint Identity Security Cloud provides Identity Governance evidence for this control. API EVIDENCE PENDING — connector not yet integrated.",
+                "implementation-status": { "state": "planned" },
+                "props": [
+                  { "name": "tool-name", "value": "sailpoint" },
+                  { "name": "api-ready", "value": "false" },
+                  { "name": "last-api-pull", "value": "never" }
+                ]
+              }
+            ]
+          }]
+        },
+
+        {
+          "uuid": "req-ra-5-0001-5000-8000-sample000002",
+          "control-id": "ra-5",
+          "props": [
+            { "name": "reconciler-status", "value": "PARTIAL" },
+            { "name": "evidence-sources", "value": "wiz, tanium" },
+            { "name": "last-reconciled", "value": "2025-01-15T09:23:11Z" }
+          ],
+          "statements": [{
+            "statement-id": "ra-5_stmt",
+            "uuid": "stmt-ra-5-0001-5000-8000-sample000002",
+            "by-components": [
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000001",
+                "description": "[AUTO-RECONCILED 2025-01-15] PARTIAL — Wiz cloud findings confirmed. Tanium endpoint data pulled but shows critical patch SLA at 94.7% (target: 100%). 3 endpoints missing critical patches — Jira remediation tickets open (PROJ-501, PROJ-502, PROJ-503). Original SSP baseline: Vulnerability scanning is performed continuously by the cloud security platform for cloud resources and endpoint management for on-premises systems. [ISSO review recommended — endpoint patch SLA gap requires assessment.]",
+                "implementation-status": { "state": "planned" },
+                "props": [
+                  { "name": "last-reconciled", "value": "2025-01-15T09:23:11Z" },
+                  { "name": "reconciled-by", "value": "reconcile_oscal.py" },
+                  { "name": "evidence-sources-active", "value": "wiz, tanium" }
+                ]
+              },
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000002",
+                "description": "Wiz Cloud Security Platform — API evidence for RA-5 pulled 2025-01-15T08:00:00Z. 47 open findings relevant to this control (3 CRITICAL, 12 HIGH). Finding types: vulnerability, misconfiguration, exposed-service.",
+                "implementation-status": { "state": "planned" },
+                "props": [
+                  { "name": "tool-name", "value": "wiz" },
+                  { "name": "api-ready", "value": "true" },
+                  { "name": "last-api-pull", "value": "2025-01-15T08:00:00Z" },
+                  { "name": "finding-count", "value": "47" }
+                ]
+              },
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000004",
+                "description": "Tanium Endpoint Management — patch compliance for RA-5 as of 2025-01-15T08:05:00Z. Critical patch SLA compliance: 94.7% (target: 100%). 3 endpoints non-compliant. High patch SLA compliance: 98.1%.",
+                "implementation-status": { "state": "planned" },
+                "props": [
+                  { "name": "tool-name", "value": "tanium" },
+                  { "name": "api-ready", "value": "true" },
+                  { "name": "last-api-pull", "value": "2025-01-15T08:05:00Z" }
+                ]
+              }
+            ]
+          }]
+        },
+
+        {
+          "uuid": "req-cm-6-0001-5000-8000-sample000003",
+          "control-id": "cm-6",
+          "props": [
+            { "name": "reconciler-status", "value": "CONTRADICTED" },
+            { "name": "evidence-sources", "value": "wiz" },
+            { "name": "last-reconciled", "value": "2025-01-15T09:23:11Z" }
+          ],
+          "statements": [{
+            "statement-id": "cm-6_stmt",
+            "uuid": "stmt-cm-6-0001-5000-8000-sample000003",
+            "by-components": [
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000001",
+                "description": "[AUTO-RECONCILED 2025-01-15] CONTRADICTED — SSP claims all cloud resources meet CIS benchmark baseline. Wiz API shows 11 open CIS benchmark deviations including 2 HIGH severity (unencrypted storage volume, public S3 bucket with sensitive tags). This contradicts the SSP implementation claim. Original SSP baseline: Configuration settings are enforced against CIS benchmarks via automated policy checks. All cloud resources are validated at provisioning and continuously monitored. [ISSO ACTION REQUIRED — contradicted status. Remediate findings or update SSP to reflect actual implementation scope.]",
+                "implementation-status": { "state": "planned" },
+                "props": [
+                  { "name": "last-reconciled", "value": "2025-01-15T09:23:11Z" },
+                  { "name": "reconciled-by", "value": "reconcile_oscal.py" },
+                  { "name": "evidence-sources-active", "value": "wiz" }
+                ]
+              },
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000002",
+                "description": "Wiz Cloud Security Platform — API evidence for CM-6 pulled 2025-01-15T08:00:00Z. 11 open CIS benchmark deviations (2 HIGH, 7 MEDIUM, 2 LOW). HIGH findings: unencrypted EBS volume attached to production instance; S3 bucket with data-classification:sensitive tag has public read ACL enabled.",
+                "implementation-status": { "state": "planned" },
+                "props": [
+                  { "name": "tool-name", "value": "wiz" },
+                  { "name": "api-ready", "value": "true" },
+                  { "name": "last-api-pull", "value": "2025-01-15T08:00:00Z" },
+                  { "name": "finding-count", "value": "11" }
+                ]
+              }
+            ]
+          }]
+        },
+
+        {
+          "uuid": "req-ir-3-0001-5000-8000-sample000004",
+          "control-id": "ir-3",
+          "props": [
+            { "name": "reconciler-status", "value": "DRAFT-NEEDED" },
+            { "name": "grc-agent-review-needed", "value": "true" },
+            { "name": "evidence-sources", "value": "jira" }
+          ],
+          "statements": [{
+            "statement-id": "ir-3_stmt",
+            "uuid": "stmt-ir-3-0001-5000-8000-sample000004",
+            "by-components": [
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000001",
+                "description": "Implementation statement pending. No Jira record of a tabletop exercise or IR test found in the last 365 days. GRC agent will draft narrative once ISSO provides exercise documentation or confirms test date. [ISSO ACTION REQUIRED — upload exercise records or schedule IR test.]",
+                "implementation-status": { "state": "planned" },
+                "props": [
+                  { "name": "last-reconciled", "value": "never" },
+                  { "name": "reconciled-by", "value": "pending" },
+                  { "name": "evidence-sources-active", "value": "none" }
+                ]
+              },
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000003",
+                "description": "Jira — no tabletop exercise or IR test ticket found with label 'ir-test' in last 365 days. Query returned 0 results.",
+                "implementation-status": { "state": "planned" },
+                "props": [
+                  { "name": "tool-name", "value": "jira" },
+                  { "name": "api-ready", "value": "true" },
+                  { "name": "last-api-pull", "value": "2025-01-15T08:01:00Z" }
+                ]
+              }
+            ]
+          }]
+        },
+
+        {
+          "uuid": "req-au-11-0001-5000-8000-sample000005",
+          "control-id": "au-11",
+          "props": [
+            { "name": "reconciler-status", "value": "CONFIRMED" },
+            { "name": "evidence-sources", "value": "splunk" },
+            { "name": "last-reconciled", "value": "2025-01-15T09:23:11Z" }
+          ],
+          "statements": [{
+            "statement-id": "au-11_stmt",
+            "uuid": "stmt-au-11-0001-5000-8000-sample000005",
+            "by-components": [
+              {
+                "component-uuid": "c1a2b3c4-0001-5000-8000-000000000001",
+                "description": "[AUTO-RECONCILED 2025-01-15] Control implementation validated by: Splunk SIEM. Retention policy confirmed: 90 days active storage, 3-year archive. Zero retention policy violations detected in last 30 days. Original SSP baseline: Audit records are retained for a minimum of 90 days in active storage and 3 years in archive per organizational policy and applicable framework requirements. [ISSO review recommended before submission.]",
+                "implementation-status": { "state": "implemented" },
+                "props": [
+                  { "name": "last-reconciled", "value": "2025-01-15T09:23:11Z" },
+                  { "name": "reconciled-by", "value": "reconcile_oscal.py" },
+                  { "name": "evidence-sources-active", "value": "splunk" }
+                ]
+              }
+            ]
+          }]
+        }
+
+      ]
+    }
+  }
+}

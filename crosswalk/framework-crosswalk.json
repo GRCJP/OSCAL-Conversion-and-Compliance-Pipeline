@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "title": "Framework High-Watermark Crosswalk",
+    "description": "Maps controls where a secondary framework has stricter requirements than the primary baseline. Used to tag controls for dual-framework compliance.",
+    "primary-framework": "NIST SP 800-53 Rev 5 Moderate",
+    "secondary-framework": "Secondary Framework (e.g., FedRAMP High, HIPAA, program-specific overlay)",
+    "generated": "2024-01-01",
+    "notes": "Only controls where secondary framework is STRICTER than primary are listed. Controls where primary is sufficient are omitted. Replace these example entries with your actual framework delta."
+  },
+  "control-deltas": [
+    {
+      "control-id": "ac-2",
+      "watermark": "secondary-framework",
+      "primary-requirement": "Disable inactive accounts within defined period",
+      "secondary-requirement": "Temporary accounts disabled within 2 business days (stricter SLA than NIST baseline)",
+      "gap-risk": "high",
+      "ssp-note": "Secondary framework requires tighter account deactivation SLA. Identity governance platform must be configured to enforce this limit.",
+      "tool": "sailpoint"
+    },
+    {
+      "control-id": "ac-6",
+      "watermark": "secondary-framework",
+      "primary-requirement": "Least privilege for all users",
+      "secondary-requirement": "Need-to-know enforcement specifically for sensitive data paths — must be documented per data classification",
+      "gap-risk": "high",
+      "ssp-note": "Secondary framework requires documented need-to-know justification for access to sensitive data categories. PAM + IGA must enforce.",
+      "tool": "beyondtrust"
+    },
+    {
+      "control-id": "ac-17",
+      "watermark": "secondary-framework",
+      "primary-requirement": "Remote access documented and controlled",
+      "secondary-requirement": "VPN-equivalent + AAL2 MFA required for remote access to sensitive data",
+      "gap-risk": "high",
+      "ssp-note": "Secondary framework requires AAL2 MFA for all remote access to sensitive data. Verify network access control + IdP enforce this.",
+      "tool": "forgerock"
+    },
+    {
+      "control-id": "ia-2",
+      "watermark": "secondary-framework",
+      "primary-requirement": "MFA for privileged accounts",
+      "secondary-requirement": "AAL2 MFA, phishing-resistant preferred, for all accounts accessing sensitive data",
+      "gap-risk": "high",
+      "ssp-note": "Secondary framework requires AAL2 minimum across all user types accessing sensitive data. Document phishing-resistant authenticator deployment plan.",
+      "tool": "forgerock"
+    },
+    {
+      "control-id": "au-2",
+      "watermark": "secondary-framework",
+      "primary-requirement": "Audit events defined",
+      "secondary-requirement": "Sensitive data access events must be specifically included in the audit event definition — not just implied by general logging",
+      "gap-risk": "medium",
+      "ssp-note": "Secondary framework requires explicit audit event categories for sensitive data access. Verify SIEM captures and retains these specifically.",
+      "tool": "splunk"
+    },
+    {
+      "control-id": "sc-8",
+      "watermark": "secondary-framework",
+      "primary-requirement": "Transmission confidentiality and integrity",
+      "secondary-requirement": "FIPS 140-2 validated encryption required for sensitive data in transit",
+      "gap-risk": "high",
+      "ssp-note": "Secondary framework requires FIPS 140-2 validated modules. Verify network proxy and file transfer tools use FIPS-validated cipher suites.",
+      "tool": "goanywhere"
+    },
+    {
+      "control-id": "sc-28",
+      "watermark": "secondary-framework",
+      "primary-requirement": "Protection of information at rest",
+      "secondary-requirement": "Full disk encryption required on all devices that may store sensitive data",
+      "gap-risk": "high",
+      "ssp-note": "Secondary framework requires FDE on all endpoints. Endpoint management platform must verify 100% FDE compliance.",
+      "tool": "tanium"
+    },
+    {
+      "control-id": "ir-6",
+      "watermark": "secondary-framework",
+      "primary-requirement": "Incident reporting to organizational authorities",
+      "secondary-requirement": "DUAL reporting obligation — independent notifications to separate oversight authorities within framework-specific timeframes",
+      "gap-risk": "critical",
+      "ssp-note": "CRITICAL: If subject to multiple frameworks, verify whether each framework requires independent incident notification to separate authorities. Missing one notification chain is a compliance failure regardless of the other. Document both chains in IR policy.",
+      "tool": "manual"
+    },
+    {
+      "control-id": "sr-3",
+      "watermark": "secondary-framework",
+      "primary-requirement": "Supply chain controls",
+      "secondary-requirement": "Secondary framework requirements must flow down contractually to all vendors who receive or process sensitive data",
+      "gap-risk": "medium",
+      "ssp-note": "Secondary framework flow-down must be in vendor contracts. Software supply chain tool tracks component inventory; procurement owns contract review.",
+      "tool": "nexus"
+    }
+  ]
+}

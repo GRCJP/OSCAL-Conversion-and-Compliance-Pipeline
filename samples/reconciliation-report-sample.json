@@ -1,0 +1,182 @@
+{
+  "generated": "2025-01-15T09:23:11Z",
+  "pipeline_run": {
+    "connectors_active": ["wiz", "jira", "tanium"],
+    "connectors_pending": ["sailpoint", "forgerock", "beyondtrust", "splunk"],
+    "oscal_file": "oscal/sspp.json",
+    "controls_evaluated": 26
+  },
+  "summary": {
+    "CONFIRMED": 11,
+    "PARTIAL": 8,
+    "CONTRADICTED": 2,
+    "UNDOCUMENTED": 1,
+    "DRAFT-NEEDED": 4,
+    "skipped_not_applicable": 0
+  },
+  "confirmed_controls": [
+    {
+      "control_id": "ac-2",
+      "evidence_sources": ["jira"],
+      "reason": "Jira: 14 account requests in 90 days, all approved. Average resolution 3.2 hours."
+    },
+    {
+      "control_id": "au-11",
+      "evidence_sources": ["splunk"],
+      "reason": "Splunk: 90-day active retention confirmed, 3-year archive policy active, zero violations."
+    },
+    {
+      "control_id": "cm-3",
+      "evidence_sources": ["jira", "bitbucket"],
+      "reason": "Jira: 34 change requests in 90 days, 100% with SIA field completed. Bitbucket: all merges via approved PR."
+    },
+    {
+      "control_id": "cm-8",
+      "evidence_sources": ["tanium"],
+      "reason": "Tanium: 847 endpoints inventoried, hardware and software inventory current as of 2025-01-15."
+    },
+    {
+      "control_id": "ia-2",
+      "evidence_sources": ["forgerock"],
+      "reason": "ForgeRock: 100% MFA enrollment on privileged accounts, 96.2% on standard accounts."
+    },
+    {
+      "control_id": "ca-7",
+      "evidence_sources": ["wiz", "splunk", "new_relic"],
+      "reason": "All three monitoring tools API-confirmed active with no unaddressed alerts."
+    },
+    {
+      "control_id": "cp-9",
+      "evidence_sources": ["aws_storage"],
+      "reason": "AWS: backup completion 100% for last 30 days. Retention: 35 days. Recovery tested."
+    },
+    {
+      "control_id": "sc-7",
+      "evidence_sources": ["wiz"],
+      "reason": "Wiz: 0 critical boundary exposures. 2 MEDIUM open — non-critical services, scheduled remediation."
+    },
+    {
+      "control_id": "sc-28",
+      "evidence_sources": ["aws_storage", "tanium"],
+      "reason": "AWS: all storage resources encrypted via KMS. Tanium: 3 endpoints missing FDE — flagged."
+    },
+    {
+      "control_id": "sa-10",
+      "evidence_sources": ["bitbucket", "jenkins"],
+      "reason": "Bitbucket: 100% of merges via approved PR. Jenkins: 0 security gate bypasses in 30 days."
+    },
+    {
+      "control_id": "si-4",
+      "evidence_sources": ["splunk", "new_relic", "wiz"],
+      "reason": "All three monitoring tools active and API-confirmed. 247 Splunk correlation rules active."
+    }
+  ],
+  "partial_controls": [
+    {
+      "control_id": "ra-5",
+      "evidence_sources": ["wiz", "tanium"],
+      "gap": "Tanium critical patch SLA at 94.7% — 3 endpoints non-compliant. Remediation tickets open.",
+      "data_quality_note": null
+    },
+    {
+      "control_id": "ac-6",
+      "evidence_sources": ["jira"],
+      "gap": "BeyondTrust connector not yet integrated — privileged session evidence missing.",
+      "data_quality_note": null
+    },
+    {
+      "control_id": "ir-5",
+      "evidence_sources": ["jira"],
+      "gap": "Splunk alert-to-ticket correlation not yet connected.",
+      "data_quality_note": "DATA QUALITY: 47 open by status field vs 6 unresolved by resolution field. SOC team does not close tickets after resolution. Using resolution field for accurate count. This is a process gap, not a control failure."
+    },
+    {
+      "control_id": "si-2",
+      "evidence_sources": ["wiz", "tanium"],
+      "gap": "Critical patch SLA 94.7% — below 100% target. 3 non-compliant endpoints tracked in Jira.",
+      "data_quality_note": null
+    },
+    {
+      "control_id": "ca-5",
+      "evidence_sources": ["jira"],
+      "gap": "7 open POA&M items. 2 overdue: PROJ-441, PROJ-398. ISSO review required.",
+      "data_quality_note": null
+    },
+    {
+      "control_id": "cm-6",
+      "evidence_sources": ["wiz"],
+      "gap": "3 CIS benchmark deviations open (MEDIUM). In active remediation per PROJ-480.",
+      "data_quality_note": null
+    },
+    {
+      "control_id": "sa-11",
+      "evidence_sources": ["wiz", "nexus"],
+      "gap": "BlazeMeter security test connector not integrated. Last security test date unconfirmed via API.",
+      "data_quality_note": null
+    },
+    {
+      "control_id": "ac-17",
+      "evidence_sources": ["forgerock"],
+      "gap": "Zscaler connector not yet integrated. Network boundary enforcement evidence incomplete.",
+      "data_quality_note": null
+    }
+  ],
+  "contradicted_controls": [
+    {
+      "control_id": "cm-6",
+      "ssp_claim": "All cloud resources meet CIS benchmark baseline. Configuration validated at provisioning and continuously monitored.",
+      "evidence_shows": "Wiz: 11 open CIS benchmark deviations including 2 HIGH — unencrypted EBS volume on production instance, public S3 bucket with sensitive data tag.",
+      "action_required": "Remediate HIGH findings or update SSP to reflect actual scope. ISSO sign-off required."
+    },
+    {
+      "control_id": "sc-28",
+      "ssp_claim": "Full disk encryption enforced on all endpoints.",
+      "evidence_shows": "Tanium: 3 of 847 endpoints (0.35%) missing FDE. Endpoints identified: [sanitized for sample].",
+      "action_required": "Remediate 3 endpoints or document exception. ISSO sign-off required."
+    }
+  ],
+  "undocumented_controls": [
+    {
+      "control_id": "cm-2",
+      "evidence_shows": "Terraform state confirmed — all infrastructure version-controlled with PR approval history in Bitbucket. No implementation statement in SSP.",
+      "action_required": "Add implementation narrative to SSP for cm-2. Evidence already exists."
+    }
+  ],
+  "draft_needed_controls": [
+    {
+      "control_id": "ir-3",
+      "reason": "No Jira record of tabletop exercise or IR test in last 365 days.",
+      "action_required": "Upload exercise documentation or schedule IR test. GRC agent will draft narrative once evidence exists."
+    },
+    {
+      "control_id": "ir-6",
+      "reason": "No automated evidence available for dual incident reporting chain.",
+      "action_required": "Manual attestation required. ISSO must document both notification chains in IR policy and attest."
+    },
+    {
+      "control_id": "sr-3",
+      "reason": "Nexus API connector not yet integrated. SBOM completeness unconfirmed.",
+      "action_required": "Connect Nexus connector or provide manual SBOM attestation."
+    },
+    {
+      "control_id": "ps-4",
+      "reason": "SailPoint connector not integrated. Personnel termination account-disable SLA unverified.",
+      "action_required": "Connect SailPoint connector to evidence PS-4 automatically."
+    }
+  ],
+  "data_quality_flags": [
+    {
+      "tool": "jira",
+      "control": "ir-5",
+      "flag": "Incident ticket count by status field (47 open) is inflated. SOC team does not close tickets after resolution. Accurate resolved count derived from resolution field instead. Recommend: coordinate with SOC on ticket closure workflow."
+    }
+  ],
+  "next_steps": [
+    "Remediate 2 CONTRADICTED controls before next assessment window",
+    "Resolve 2 overdue POA&M items (PROJ-441, PROJ-398)",
+    "Connect SailPoint connector to close identity lifecycle evidence gaps",
+    "Connect Splunk connector to confirm AU-family control evidence",
+    "Schedule IR tabletop exercise to close IR-3 DRAFT-NEEDED gap",
+    "Address 3 endpoints missing FDE (SC-28 partial finding)"
+  ]
+}

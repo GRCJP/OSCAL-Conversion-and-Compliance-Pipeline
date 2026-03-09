@@ -1,0 +1,115 @@
+{
+  "pulled_at": "2025-01-15T08:00:00Z",
+  "connector": "wiz_ingest.py",
+  "tenant_region": "<your-tenant>",
+  "finding_count": 63,
+  "_note": "Sample output — org-specific resource IDs, account IDs, and resource names have been replaced with representative placeholders. Structure and field names reflect actual Wiz GraphQL API response.",
+  "findings": [
+    {
+      "id": "wiz-finding-00001",
+      "severity": "CRITICAL",
+      "status": "OPEN",
+      "type": "vulnerability",
+      "entitySnapshot": {
+        "id": "resource-ec2-001",
+        "type": "VirtualMachine",
+        "name": "prod-app-server-01",
+        "cloudPlatform": "AWS",
+        "region": "us-east-1"
+      },
+      "createdAt": "2025-01-10T14:22:00Z",
+      "mapped_controls": ["ra-5", "si-2"],
+      "_description": "Critical CVE with public exploit detected on production EC2 instance. Patch available."
+    },
+    {
+      "id": "wiz-finding-00002",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "type": "misconfiguration",
+      "entitySnapshot": {
+        "id": "resource-s3-001",
+        "type": "Bucket",
+        "name": "prod-data-bucket-[sanitized]",
+        "cloudPlatform": "AWS",
+        "region": "us-east-1"
+      },
+      "createdAt": "2025-01-12T09:15:00Z",
+      "mapped_controls": ["cm-6", "sc-28"],
+      "_description": "S3 bucket with data-classification:sensitive tag has public read ACL enabled."
+    },
+    {
+      "id": "wiz-finding-00003",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "type": "misconfiguration",
+      "entitySnapshot": {
+        "id": "resource-ebs-001",
+        "type": "DiskImage",
+        "name": "prod-db-volume-[sanitized]",
+        "cloudPlatform": "AWS",
+        "region": "us-east-1"
+      },
+      "createdAt": "2025-01-08T11:30:00Z",
+      "mapped_controls": ["cm-6", "sc-28"],
+      "_description": "EBS volume attached to production database instance is not encrypted."
+    },
+    {
+      "id": "wiz-finding-00004",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "type": "iam",
+      "entitySnapshot": {
+        "id": "resource-iam-001",
+        "type": "CloudRole",
+        "name": "app-service-role-[sanitized]",
+        "cloudPlatform": "AWS",
+        "region": "us-east-1"
+      },
+      "createdAt": "2025-01-05T16:45:00Z",
+      "mapped_controls": ["ac-6", "si-4"],
+      "_description": "IAM role has overprivileged policy attached — includes admin-equivalent actions not required for function."
+    },
+    {
+      "id": "wiz-finding-00005",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "type": "network",
+      "entitySnapshot": {
+        "id": "resource-sg-001",
+        "type": "SecurityGroup",
+        "name": "prod-sg-[sanitized]",
+        "cloudPlatform": "AWS",
+        "region": "us-east-1"
+      },
+      "createdAt": "2025-01-13T08:00:00Z",
+      "mapped_controls": ["sc-7", "cm-7"],
+      "_description": "Security group allows inbound SSH (port 22) from 0.0.0.0/0. Should be restricted to known management IPs."
+    },
+    {
+      "id": "wiz-finding-00006",
+      "severity": "LOW",
+      "status": "OPEN",
+      "type": "misconfiguration",
+      "entitySnapshot": {
+        "id": "resource-rds-001",
+        "type": "DBInstance",
+        "name": "prod-rds-[sanitized]",
+        "cloudPlatform": "AWS",
+        "region": "us-east-1"
+      },
+      "createdAt": "2025-01-11T10:00:00Z",
+      "mapped_controls": ["cm-6"],
+      "_description": "RDS instance has minor version auto-upgrade disabled. CIS benchmark deviation."
+    }
+  ],
+  "control_summary": {
+    "ra-5": { "open_count": 18, "by_severity": { "CRITICAL": 3, "HIGH": 6, "MEDIUM": 8, "LOW": 1 } },
+    "si-2": { "open_count": 18, "by_severity": { "CRITICAL": 3, "HIGH": 6, "MEDIUM": 8, "LOW": 1 } },
+    "cm-6": { "open_count": 11, "by_severity": { "CRITICAL": 0, "HIGH": 2, "MEDIUM": 7, "LOW": 2 } },
+    "sc-7": { "open_count": 4,  "by_severity": { "CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 1 } },
+    "sc-28":{ "open_count": 3,  "by_severity": { "CRITICAL": 0, "HIGH": 2, "MEDIUM": 1, "LOW": 0 } },
+    "ac-6": { "open_count": 6,  "by_severity": { "CRITICAL": 0, "HIGH": 2, "MEDIUM": 4, "LOW": 0 } },
+    "cm-7": { "open_count": 3,  "by_severity": { "CRITICAL": 0, "HIGH": 0, "MEDIUM": 3, "LOW": 0 } },
+    "si-4": { "open_count": 6,  "by_severity": { "CRITICAL": 0, "HIGH": 2, "MEDIUM": 4, "LOW": 0 } }
+  }
+}
