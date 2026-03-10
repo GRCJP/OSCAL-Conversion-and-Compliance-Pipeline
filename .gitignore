@@ -1,0 +1,58 @@
+# Secrets — never commit these
+.env
+*.pem
+*.key
+*_token.txt
+*_secret.txt
+credentials.json
+secrets/
+
+# SSH keys
+id_rsa
+id_ed25519
+*.ppk
+
+# Raw evidence archives — contain potentially sensitive data
+# Commit only the OSCAL artifacts, not raw API dumps
+evidence/wiz/*.json
+evidence/tanium/*.json
+evidence/jira/*.json
+evidence/splunk/*.json
+evidence/sailpoint/*.json
+# Allow the reconciliation report (it contains control IDs, not raw data)
+!evidence/reconciliation-report.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.so
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+tmp/

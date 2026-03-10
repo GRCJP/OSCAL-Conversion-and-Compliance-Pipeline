@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSCAL Compliance Pipeline — Live Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17; --surface: #111827; --surface2: #1a2236;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --accent3: #10b981; --warn: #f59e0b; --danger: #ef4444;
+    --text: #e2e8f0; --muted: #64748b;
+    --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* HEADER */
+  header { position: relative; z-index: 10; padding: 56px 40px 28px; max-width: 1200px; margin: 0 auto; animation: fadeUp 0.5s ease both; }
+  .tag { display: inline-block; font-family: var(--mono); font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--accent); border: 1px solid rgba(0,212,255,.3); padding: 4px 12px; border-radius: 2px; margin-bottom: 18px; }
+  h1 { font-family: var(--mono); font-size: clamp(22px,4vw,44px); font-weight: 700; line-height: 1.1; letter-spacing: -.02em; }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: 10px; color: var(--muted); font-size: 14px; font-weight: 300; max-width: 600px; line-height: 1.6; }
+  .header-meta { display: flex; gap: 18px; margin-top: 18px; flex-wrap: wrap; }
+  .meta-pill { font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); animation: pulse 2s infinite; }
+
+  /* EXPLAINER */
+  .explainer-section { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0 40px 32px; animation: fadeUp 0.5s .1s ease both; }
+  .explainer-grid { display: grid; grid-template-columns: repeat(4,1fr); border: 1px solid rgba(0,212,255,.12); border-radius: 10px; overflow: hidden; background: rgba(0,212,255,.02); }
+  @media(max-width:900px){.explainer-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:560px){.explainer-grid{grid-template-columns:1fr;}}
+  .ex-card { padding: 16px 18px; border-right: 1px solid rgba(0,212,255,.08); }
+  .ex-card:last-child { border-right: none; }
+  .ex-num { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); opacity: .35; margin-bottom: 8px; }
+  .ex-title { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); margin-bottom: 5px; }
+  .ex-body { font-size: 11px; color: var(--muted); line-height: 1.6; }
+  .ex-body strong { color: var(--text); font-weight: 500; }
+
+  /* DATA SOURCE NOTE */
+  .data-note { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0 40px 20px; }
+  .data-note-inner { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10px; color: var(--accent3); background: rgba(16,185,129,.07); border: 1px solid rgba(16,185,129,.2); padding: 5px 12px; border-radius: 4px; }
+  .data-note-inner code { color: var(--text); }
+
+  /* PIPELINE */
+  .pipeline-section { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0 40px 44px; animation: fadeUp 0.5s .2s ease both; }
+  .section-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .pipeline { display: flex; align-items: stretch; overflow-x: auto; scrollbar-width: none; }
+  .pipeline::-webkit-scrollbar { display: none; }
+  .p-step { flex: 0 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 13px 16px; min-width: 150px; cursor: pointer; transition: all .2s; }
+  .p-step:hover,.p-step.active { border-color: var(--accent); background: rgba(0,212,255,.05); transform: translateY(-2px); }
+  .p-num { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-bottom: 4px; }
+  .p-name { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .p-desc { font-size: 10px; color: var(--muted); line-height: 1.4; margin-bottom: 7px; }
+  .p-badge { display: inline-block; font-size: 10px; font-family: var(--mono); padding: 2px 6px; border-radius: 2px; }
+  .b-done { background: rgba(16,185,129,.15); color: var(--accent3); }
+  .b-prog { background: rgba(245,158,11,.15); color: var(--warn); }
+  .b-plan { background: rgba(100,116,139,.15); color: var(--muted); }
+  .p-arrow { flex: 0 0 auto; display: flex; align-items: center; padding: 0 5px; color: var(--border); font-size: 16px; }
+
+  /* STATS */
+  .stats-bar { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0 40px 28px; display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; animation: fadeUp 0.5s .25s ease both; }
+  @media(max-width:700px){.stats-bar{grid-template-columns:repeat(3,1fr);}}
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; text-align: center; }
+  .stat-num { font-family: var(--mono); font-size: 24px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .n-total{color:var(--accent);} .n-conf{color:var(--accent3);} .n-part{color:var(--warn);} .n-flag{color:var(--danger);} .n-tool{color:var(--accent2);}
+
+  /* MAIN GRID */
+  .main-grid { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0 40px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; animation: fadeUp 0.5s .3s ease both; }
+  @media(max-width:900px){.main-grid{grid-template-columns:1fr;}}
+
+  /* PANELS */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .p-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); gap: 8px; flex-wrap: wrap; }
+  .p-title { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; }
+  .p-hint { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 2px; }
+  .p-actions { display: flex; gap: 7px; align-items: center; }
+
+  /* BUTTONS */
+  .btn { font-family: var(--mono); font-size: 11px; padding: 4px 11px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+  .btn.primary:hover { background: #00b8d9; }
+
+  /* CONTROL LIST */
+  .filter-tabs { display: flex; gap: 3px; padding: 8px 8px 0; flex-wrap: wrap; }
+  .f-tab { font-family: var(--mono); font-size: 9px; padding: 3px 7px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; text-transform: uppercase; }
+  .f-tab.active { background: rgba(0,212,255,.1); border-color: var(--accent); color: var(--accent); }
+  .ctrl-list { padding: 6px; max-height: 380px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .ctrl-item { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 6px; cursor: pointer; transition: background .15s; border: 1px solid transparent; }
+  .ctrl-item:hover { background: var(--surface2); }
+  .ctrl-item.sel { background: rgba(0,212,255,.06); border-color: rgba(0,212,255,.2); }
+  .c-id { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); min-width: 72px; }
+  .c-name { font-size: 12px; color: var(--text); flex: 1; }
+  .s-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .d-confirmed{background:var(--accent3);box-shadow:0 0 5px var(--accent3);}
+  .d-partial{background:var(--warn);box-shadow:0 0 5px var(--warn);}
+  .d-draftneed,.d-draftneeded{background:var(--muted);}
+  .d-contradicted{background:var(--danger);box-shadow:0 0 5px var(--danger);}
+  .d-undocumented{background:var(--accent2);}
+  .s-lbl { font-family: var(--mono); font-size: 9px; min-width: 82px; text-align: right; }
+  .l-confirmed{color:var(--accent3);} .l-partial{color:var(--warn);}
+  .l-draftneed,.l-draftneeded{color:var(--muted);} .l-contradicted{color:var(--danger);} .l-undocumented{color:var(--accent2);}
+
+  /* DETAIL */
+  .sel-detail { padding: 12px 16px; border-top: 1px solid var(--border); background: rgba(0,212,255,.02); display: none; }
+  .sel-detail.vis { display: block; }
+  .d-lbl { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 4px; margin-top: 10px; }
+  .d-lbl:first-child { margin-top: 0; }
+  .d-val { font-size: 11px; color: var(--text); line-height: 1.55; }
+  .tool-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+  .t-chip { font-family: var(--mono); font-size: 9px; padding: 2px 6px; border-radius: 3px; background: rgba(124,58,237,.15); color: #a78bfa; border: 1px solid rgba(124,58,237,.2); }
+
+  /* JSON */
+  .json-view { padding: 14px 16px; font-family: var(--mono); font-size: 11px; line-height: 1.75; max-height: 480px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .jk{color:#7dd3fc;} .js{color:#86efac;} .jsh{color:var(--accent);} .jn{color:#fbbf24;} .jbt{color:var(--accent3);} .jbf{color:var(--danger);} .jc{color:var(--muted);font-style:italic;} .jb{color:var(--muted);} .ji{padding-left:14px;display:block;}
+
+  /* RECONCILER */
+  .rec-out { padding: 14px 16px; font-family: var(--mono); font-size: 11px; line-height: 1.8; max-height: 480px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .log-ln { display: flex; gap: 9px; padding: 2px 0; border-bottom: 1px solid rgba(30,45,69,.4); }
+  .l-time{color:var(--muted);min-width:76px;} .l-ctrl{color:var(--accent);min-width:72px;} .l-msg{color:var(--text);flex:1;font-size:10px;} .l-res{min-width:95px;text-align:right;}
+  .rc{color:var(--accent3);} .rp{color:var(--warn);} .rf{color:var(--danger);} .ru{color:var(--accent2);} .rs{color:var(--muted);}
+
+  /* EVIDENCE */
+  .ev-panel { padding: 14px 16px; max-height: 480px; overflow-y: auto; }
+  .ev-tool { margin-bottom: 12px; }
+  .ev-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .ev-name { font-family: var(--mono); font-size: 11px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .api-b { font-size: 9px; padding: 1px 5px; border-radius: 2px; font-family: var(--mono); }
+  .api-live{background:rgba(16,185,129,.15);color:var(--accent3);} .api-pend{background:rgba(100,116,139,.15);color:var(--muted);}
+  .ev-pct { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .ev-bg { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .ev-fill { height: 100%; border-radius: 2px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+  .bc{background:var(--accent3);} .bp{background:var(--warn);} .bn{background:var(--muted);opacity:.3;}
+
+  /* LOADING / FOOTER / TOAST */
+  .loading { padding: 32px; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .scanning { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  .sc-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: pulse .8s infinite; }
+  .sc-dot:nth-child(2){animation-delay:.2s;} .sc-dot:nth-child(3){animation-delay:.4s;}
+
+  footer { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 18px 40px 48px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+  .ft { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .fl { display: flex; gap: 18px; }
+  .fl a { font-family: var(--mono); font-size: 10px; color: var(--muted); text-decoration: none; transition: color .15s; }
+  .fl a:hover { color: var(--accent); }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--accent3); border-radius: 8px; padding: 10px 16px; font-family: var(--mono); font-size: 11px; color: var(--accent3); z-index: 1000; opacity: 0; transform: translateY(6px); transition: all .3s; pointer-events: none; max-width: 360px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
+  @keyframes pulse { 0%,100%{opacity:1;}50%{opacity:.3;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">● Live Demo — Compliance as Code</div>
+  <h1>OSCAL <span>Compliance</span><br>Automation Pipeline</h1>
+  <p class="subtitle">A working pipeline that converts a stale Excel SSP into a living OSCAL document — evidence pulled daily from real security tool APIs, reconciled automatically, reviewed by a human ISSO.</p>
+  <div class="header-meta">
+    <span class="meta-pill"><span class="live-dot"></span> NIST SP 800-53 Rev 5</span>
+    <span class="meta-pill">● OSCAL 1.1.2</span>
+    <span class="meta-pill">● 19 Tool Connectors</span>
+    <span class="meta-pill">● by-components Architecture</span>
+  </div>
+</header>
+
+<div class="explainer-section">
+  <div class="explainer-grid">
+    <div class="ex-card">
+      <div class="ex-num">①</div>
+      <div class="ex-title">What this is</div>
+      <div class="ex-body">A pipeline that pulls evidence from security tools (Wiz, Jira, Tanium, Splunk) and writes it into an OSCAL System Security Plan automatically, every day. The SSP is always current.</div>
+    </div>
+    <div class="ex-card">
+      <div class="ex-num">②</div>
+      <div class="ex-title">The problem it solves</div>
+      <div class="ex-body">Your SSP says a control is "Implemented." Your tools tell a different story. The reconciler compares SSP claims against real API evidence and surfaces gaps with <strong>5 outcome states</strong> — not just pass/fail.</div>
+    </div>
+    <div class="ex-card">
+      <div class="ex-num">③</div>
+      <div class="ex-title">Try it — it's interactive</div>
+      <div class="ex-body">Click a <strong>pipeline step</strong> to learn what it does. Click a <strong>control</strong> to inspect its real OSCAL evidence. Hit <strong>▶ Run Reconciler</strong> to watch it evaluate every control live from the sample data.</div>
+    </div>
+    <div class="ex-card">
+      <div class="ex-num">④</div>
+      <div class="ex-title">The end goal</div>
+      <div class="ex-body">An AI agent that pre-determines implementation accuracy — reasoning about <strong>compensating controls</strong> and approved exceptions — so the ISSO reviews a structured brief instead of chasing evidence manually.</div>
+    </div>
+  </div>
+</div>
+
+<div class="data-note">
+  <div class="data-note-inner">
+    ● Loading live from repo:
+    <code>samples/reconciliation-report-sample.json</code> +
+    <code>samples/sspp-sample.json</code>
+  </div>
+</div>
+
+<div class="pipeline-section">
+  <div class="section-label">Pipeline Architecture — click any step to see what it does</div>
+  <div class="pipeline">
+    <div class="p-step active" onclick="selStep(0,this)">
+      <div class="p-num">01</div><div class="p-name">excel_to_oscal.py</div>
+      <div class="p-desc">Converts legacy Excel SSP to OSCAL JSON with by-components structure and UUID v5 stable IDs</div>
+      <span class="p-badge b-done">✓ complete</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="p-step" onclick="selStep(1,this)">
+      <div class="p-num">02</div><div class="p-name">wiz_ingest.py</div>
+      <div class="p-desc">GraphQL API — pulls raw cloud findings, maps dynamically to NIST controls at ingest time</div>
+      <span class="p-badge b-done">✓ complete</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="p-step" onclick="selStep(2,this)">
+      <div class="p-num">03</div><div class="p-name">jira_ingest.py</div>
+      <div class="p-desc">JQL queries pull process evidence — account requests, change tickets, POA&M items, incident records</div>
+      <span class="p-badge b-done">✓ complete</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="p-step" onclick="selStep(3,this)">
+      <div class="p-num">04</div><div class="p-name">tanium_ingest.py</div>
+      <div class="p-desc">Endpoint patch compliance by SLA, disk encryption status, software inventory</div>
+      <span class="p-badge b-prog">⟳ in progress</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="p-step" onclick="selStep(4,this)">
+      <div class="p-num">05</div><div class="p-name">reconcile_oscal.py</div>
+      <div class="p-desc">Compares SSP claim vs. tool evidence. 5 outcome states. Original narrative always preserved.</div>
+      <span class="p-badge b-done">✓ complete</span>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="p-step" onclick="selStep(5,this)">
+      <div class="p-num">06</div><div class="p-name">grc_agent.py</div>
+      <div class="p-desc">LLM pre-determines accuracy, reasons about compensating controls, drafts narratives for ISSO review</div>
+      <span class="p-badge b-plan">◌ in development</span>
+    </div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-card"><div class="stat-num n-total" id="s-total">—</div><div class="stat-lbl">Controls</div></div>
+  <div class="stat-card"><div class="stat-num n-conf"  id="s-conf">—</div><div class="stat-lbl">Confirmed</div></div>
+  <div class="stat-card"><div class="stat-num n-part"  id="s-part">—</div><div class="stat-lbl">Partial</div></div>
+  <div class="stat-card"><div class="stat-num n-flag"  id="s-flag">—</div><div class="stat-lbl">Need Attention</div></div>
+  <div class="stat-card"><div class="stat-num n-tool">19</div><div class="stat-lbl">Tool Connectors</div></div>
+</div>
+
+<div class="main-grid">
+
+  <div class="panel">
+    <div class="p-header">
+      <div><div class="p-title">// Control Browser</div><div class="p-hint">From reconciliation-report-sample.json · click any control</div></div>
+      <button class="btn primary" onclick="runReconciler()">▶ Run Reconciler</button>
+    </div>
+    <div class="filter-tabs">
+      <button class="f-tab active" onclick="filterCtrl('all',this)">All</button>
+      <button class="f-tab" onclick="filterCtrl('CONFIRMED',this)">Confirmed</button>
+      <button class="f-tab" onclick="filterCtrl('PARTIAL',this)">Partial</button>
+      <button class="f-tab" onclick="filterCtrl('CONTRADICTED',this)">Contradicted</button>
+      <button class="f-tab" onclick="filterCtrl('DRAFT-NEEDED',this)">Draft Needed</button>
+    </div>
+    <div class="ctrl-list" id="ctrl-list"><div class="loading">Loading from samples/…</div></div>
+    <div class="sel-detail" id="sel-detail">
+      <div class="d-lbl">SSP Implementation Claim</div>
+      <div class="d-val" id="d-narrative"></div>
+      <div class="d-lbl">Evidence Sources Active</div>
+      <div class="tool-chips" id="d-tools"></div>
+      <div class="d-lbl">Reconciler Finding</div>
+      <div class="d-val" id="d-outcome"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="p-header">
+      <div><div class="p-title">// OSCAL sspp.json — by-components</div><div class="p-hint">From sspp-sample.json · select AC-2, RA-5, CM-6, IR-3, or AU-11 for full detail</div></div>
+      <div class="p-actions">
+        <span class="scanning" id="scan-ind" style="display:none"><span class="sc-dot"></span><span class="sc-dot"></span><span class="sc-dot"></span></span>
+        <button class="btn primary" onclick="simIngest()">⚡ Simulate Ingest</button>
+      </div>
+    </div>
+    <div class="json-view" id="json-view"><div class="loading">Loading from samples/…</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="p-header">
+      <div><div class="p-title">// Evidence Coverage by Tool</div><div class="p-hint">Derived from reconciliation-report-sample.json</div></div>
+    </div>
+    <div class="ev-panel" id="ev-panel"><div class="loading">Loading…</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="p-header">
+      <div><div class="p-title">// Reconciler Output Log</div><div class="p-hint">What reconcile_oscal.py produces when run against sspp.json</div></div>
+      <button class="btn" onclick="clearLog()">Clear</button>
+    </div>
+    <div class="rec-out" id="rec-out"><div class="loading">Hit ▶ Run Reconciler above to see live output</div></div>
+  </div>
+
+</div>
+
+<footer>
+  <span class="ft">OSCAL Compliance Automation Pipeline — NIST SP 800-53 Rev 5</span>
+  <div class="fl">
+    <a href="https://github.com/GRCJP/OSCAL-Conversion-and-Compliance-Pipeline" target="_blank">GitHub Repo →</a>
+    <a href="https://pages.nist.gov/OSCAL/" target="_blank">NIST OSCAL →</a>
+    <a href="https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final" target="_blank">SP 800-53 Rev 5 →</a>
+  </div>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let reportData = null, oscalData = null;
+let allControls = [], activeFilter = 'all', selectedId = null;
+
+// ── LOAD ───────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const [rr, os] = await Promise.all([
+      fetch('samples/reconciliation-report-sample.json').then(r=>r.json()),
+      fetch('samples/sspp-sample.json').then(r=>r.json())
+    ]);
+    reportData = rr; oscalData = os;
+    buildControls();
+    renderStats();
+    renderEvidence();
+    renderDefaultJson();
+    showToast('Loaded from samples/ — ' + allControls.length + ' controls from reconciliation report');
+  } catch(e) {
+    document.getElementById('ctrl-list').innerHTML =
+      '<div class="loading" style="color:var(--danger)">Could not load sample files.<br>Ensure GitHub Pages has deployed the latest commit.</div>';
+    console.error('Load error:', e);
+  }
+}
+
+// ── BUILD CONTROL LIST ─────────────────────────────────────────────────────────
+function buildControls() {
+  allControls = [];
+  const add = (arr, status) => arr.forEach(c => allControls.push({
+    id: c.control_id.toUpperCase(),
+    status,
+    tools: c.evidence_sources || [],
+    outcome: c.ssp_claim
+      ? `SSP claimed: "${c.ssp_claim}" — Evidence shows: ${c.evidence_shows}`
+      : (c.gap || c.reason || c.action_required || ''),
+    claim: null, oscalReq: null
+  }));
+
+  add(reportData.confirmed_controls,    'CONFIRMED');
+  add(reportData.partial_controls,      'PARTIAL');
+  add(reportData.contradicted_controls, 'CONTRADICTED');
+  add(reportData.undocumented_controls, 'UNDOCUMENTED');
+  add(reportData.draft_needed_controls, 'DRAFT-NEEDED');
+
+  // Enrich with OSCAL narrative where available
+  const reqs = oscalData['system-security-plan']['control-implementation']['implemented-requirements'];
+  reqs.forEach(req => {
+    const ctrl = allControls.find(c => c.id === req['control-id'].toUpperCase());
+    if (!ctrl) return;
+    const primary = (req.statements?.[0]?.['by-components'] || [])
+      .find(bc => !(bc.props||[]).find(p=>p.name==='tool-name'));
+    if (primary) ctrl.claim = primary.description;
+    ctrl.oscalReq = req;
+  });
+
+  renderControls();
+}
+
+// ── RENDER CONTROLS ────────────────────────────────────────────────────────────
+function renderControls() {
+  const list = document.getElementById('ctrl-list');
+  const shown = activeFilter === 'all' ? allControls : allControls.filter(c=>c.status===activeFilter);
+  if (!shown.length) { list.innerHTML = '<div class="loading">No controls match this filter</div>'; return; }
+  list.innerHTML = shown.map(c => {
+    const cls = c.status.toLowerCase().replace(/-/g,'');
+    return `<div class="ctrl-item${selectedId===c.id?' sel':''}" onclick="selCtrl('${c.id}')">
+      <div class="c-id">${c.id}</div>
+      <div class="c-name">${ctrlName(c.id)}</div>
+      <span class="s-lbl l-${cls}">${c.status}</span>
+      <div class="s-dot d-${cls}"></div>
+    </div>`;
+  }).join('');
+}
+
+function filterCtrl(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.f-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderControls();
+}
+
+function selCtrl(id) {
+  selectedId = id;
+  renderControls();
+  const ctrl = allControls.find(c=>c.id===id);
+  if (!ctrl) return;
+  const det = document.getElementById('sel-detail');
+  det.classList.add('vis');
+  document.getElementById('d-narrative').textContent = ctrl.claim || 'Full OSCAL narrative in samples/sspp-sample.json — detailed for AC-2, RA-5, CM-6, IR-3, AU-11';
+  document.getElementById('d-tools').innerHTML = ctrl.tools.length
+    ? ctrl.tools.map(t=>`<span class="t-chip">${t}</span>`).join('')
+    : '<span style="color:var(--muted);font-size:11px">No automated evidence — manual attestation required</span>';
+  document.getElementById('d-outcome').textContent = ctrl.outcome || '';
+  ctrl.oscalReq ? renderOscalJson(ctrl.oscalReq) : renderJsonHint(ctrl);
+}
+
+// ── STATS ──────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const s = reportData.summary;
+  const flagged = (s.CONTRADICTED||0) + (s['DRAFT-NEEDED']||0);
+  anim('s-total', reportData.pipeline_run.controls_evaluated);
+  anim('s-conf',  s.CONFIRMED||0);
+  anim('s-part',  s.PARTIAL||0);
+  anim('s-flag',  flagged);
+}
+function anim(id, to) {
+  const el = document.getElementById(id), dur = 1100, t0 = performance.now();
+  const step = now => { const p=Math.min((now-t0)/dur,1), e=1-Math.pow(1-p,3); el.textContent=Math.round(to*e); if(p<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+// ── EVIDENCE PANEL ─────────────────────────────────────────────────────────────
+function renderEvidence() {
+  const counts={}, totals={};
+  allControls.forEach(c => c.tools.forEach(t => {
+    if(!totals[t]){totals[t]=0;counts[t]=0;}
+    totals[t]++;
+    if(c.status==='CONFIRMED') counts[t]++;
+  }));
+  (reportData.pipeline_run.connectors_pending||[]).forEach(t=>{if(!totals[t]){totals[t]=0;counts[t]=0;}});
+
+  const tools = Object.keys(totals).sort((a,b)=>{
+    const pa=totals[a]?counts[a]/totals[a]:-1, pb=totals[b]?counts[b]/totals[b]:-1;
+    return pb-pa;
+  });
+
+  const active = reportData.pipeline_run.connectors_active || [];
+  document.getElementById('ev-panel').innerHTML = tools.map(t => {
+    const conn = active.includes(t);
+    const pct = totals[t] ? Math.round(counts[t]/totals[t]*100) : 0;
+    const bc = !conn?'bn':pct>=80?'bc':'bp';
+    return `<div class="ev-tool">
+      <div class="ev-hdr">
+        <span class="ev-name">${t}<span class="api-b ${conn?'api-live':'api-pend'}">${conn?'● API Live':'○ Pending'}</span></span>
+        <span class="ev-pct">${conn?pct+'%':'—'}</span>
+      </div>
+      <div class="ev-bg"><div class="ev-fill ${bc}" style="width:0%" data-t="${conn?pct:0}"></div></div>
+    </div>`;
+  }).join('');
+
+  setTimeout(()=>document.querySelectorAll('.ev-fill').forEach(b=>b.style.width=b.dataset.t+'%'), 400);
+}
+
+// ── OSCAL JSON VIEWER ──────────────────────────────────────────────────────────
+function renderDefaultJson() {
+  const reqs = oscalData['system-security-plan']['control-implementation']['implemented-requirements'];
+  if (reqs.length) renderOscalJson(reqs[0]);
+}
+
+function renderOscalJson(req) {
+  const cid = req['control-id'];
+  const props = req.props||[];
+  const statusVal = (props.find(p=>p.name==='reconciler-status')||{}).value||'';
+  const sources   = (props.find(p=>p.name==='evidence-sources')||{}).value||'none';
+  const lastRecon = (props.find(p=>p.name==='last-reconciled')||{}).value||'never';
+  const sCls = {CONFIRMED:'jbt',PARTIAL:'js',CONTRADICTED:'jbf','DRAFT-NEEDED':'jbf'}[statusVal]||'js';
+
+  const bcs = req.statements?.[0]?.['by-components']||[];
+  const compHtml = bcs.map(bc=>{
+    const p = Object.fromEntries((bc.props||[]).map(x=>[x.name,x.value]));
+    const isSystem = !p['tool-name'];
+    const status = bc['implementation-status']?.state||'';
+    const sCls2 = status==='implemented'?'jbt':'js';
+    const desc = esc((bc.description||'').slice(0,110))+'…';
+    return `<span class="ji">  <span class="jb">{</span>
+<span class="ji">    <span class="jc">// ${isSystem?'Primary — SSP narrative (the claim)':(p['tool-name']+' — evidence slot')}</span></span>
+<span class="ji">    <span class="jk">"description"</span>: <span class="js">"${desc}"</span>,</span>
+<span class="ji">    <span class="jk">"implementation-status"</span>: <span class="jb">{ </span><span class="jk">"state"</span>: <span class="${sCls2}">"${status}"</span> <span class="jb">}</span>${p['api-ready']!==undefined?',':''}</span>
+${p['api-ready']!==undefined?`<span class="ji">    <span class="jk">"props"</span>: <span class="jb">[</span>
+<span class="ji">      <span class="jb">{ </span><span class="jk">"api-ready"</span>: <span class="${p['api-ready']==='true'?'jbt':'jbf'}">"${p['api-ready']}"</span> <span class="jb">}</span>,</span>
+<span class="ji">      <span class="jb">{ </span><span class="jk">"last-api-pull"</span>: <span class="${p['last-api-pull']!=='never'?'jsh':'jbf'}">"${p['last-api-pull']}"</span> <span class="jb">}</span></span>
+<span class="ji">    <span class="jb">]</span></span>`:''}
+<span class="ji">  <span class="jb">}</span></span>`;
+  }).join(',\n');
+
+  document.getElementById('json-view').innerHTML =
+    `<span class="jb">{</span>
+<span class="ji"><span class="jk">"control-id"</span>: <span class="jsh">"${cid}"</span>,</span>
+<span class="ji"><span class="jk">"props"</span>: <span class="jb">[</span>
+<span class="ji">  <span class="jb">{ </span><span class="jk">"reconciler-status"</span>: <span class="${sCls}">"${statusVal}"</span> <span class="jb">}</span>,</span>
+<span class="ji">  <span class="jb">{ </span><span class="jk">"evidence-sources"</span>: <span class="js">"${sources}"</span> <span class="jb">}</span>,</span>
+<span class="ji">  <span class="jb">{ </span><span class="jk">"last-reconciled"</span>: <span class="jsh">"${lastRecon}"</span> <span class="jb">}</span></span>
+<span class="ji"><span class="jb">]</span>,</span>
+<span class="ji"><span class="jk">"statements"</span>: <span class="jb">[{</span>
+<span class="ji">  <span class="jk">"by-components"</span>: <span class="jb">[</span>
+${compHtml}
+<span class="ji">  <span class="jb">]</span></span>
+<span class="ji"><span class="jb">}]</span></span>
+<span class="jb">}</span>`;
+}
+
+function renderJsonHint(ctrl) {
+  document.getElementById('json-view').innerHTML =
+    `<span class="jc">// ${ctrl.id} — in reconciliation report, full OSCAL in sspp-sample.json</span>
+<span class="ji"><span class="jk">"control-id"</span>: <span class="jsh">"${ctrl.id.toLowerCase()}"</span>,</span>
+<span class="ji"><span class="jk">"reconciler-status"</span>: <span class="js">"${ctrl.status}"</span>,</span>
+<span class="ji"><span class="jk">"evidence-sources"</span>: <span class="js">"${ctrl.tools.join(', ')||'none'}"</span></span>
+<span class="ji"><span class="jc">// Click AC-2, RA-5, CM-6, IR-3, or AU-11</span></span>
+<span class="ji"><span class="jc">// to see the full by-components OSCAL structure</span></span>`;
+}
+
+// ── RECONCILER ─────────────────────────────────────────────────────────────────
+function runReconciler() {
+  if (!reportData) return;
+  const out = document.getElementById('rec-out');
+  out.innerHTML = '';
+  const now = new Date(); let d = 0;
+  const row = (delay, time, ctrl, msg, res) => setTimeout(()=>{
+    const ln = document.createElement('div'); ln.className='log-ln';
+    ln.innerHTML=`<span class="l-time">${time}</span><span class="l-ctrl">${ctrl}</span><span class="l-msg">${msg}</span><span class="l-res">${res}</span>`;
+    out.appendChild(ln); out.scrollTop=out.scrollHeight;
+  }, delay);
+
+  row(0,'──','────────────────────────────────────','','');
+  row(0,'  ','OSCAL Reconciler v2','','');
+  row(60,'  ',`${reportData.pipeline_run.controls_evaluated} controls loaded from sspp.json`,'','');
+  row(120,'──','────────────────────────────────────','','');
+
+  const rmap = {CONFIRMED:{c:'rc',l:'CONFIRMED'},PARTIAL:{c:'rp',l:'PARTIAL'},CONTRADICTED:{c:'rf',l:'CONTRADICTED'},UNDOCUMENTED:{c:'ru',l:'UNDOCUMENTED'},'DRAFT-NEEDED':{c:'rf',l:'DRAFT-NEEDED'}};
+  allControls.forEach((ctrl,i)=>{
+    d += 85;
+    const t = new Date(now.getTime()+d).toTimeString().slice(0,8);
+    const r = rmap[ctrl.status]||{c:'rs',l:'SKIPPED'};
+    const msg = ctrl.tools.length?`via: ${ctrl.tools.slice(0,2).join(', ')}`:'no automated evidence';
+    row(d, t, ctrl.id, msg, `<span class="${r.c}">${r.l}</span>`);
+  });
+
+  const s = reportData.summary;
+  const flagged=(s.CONTRADICTED||0)+(s['DRAFT-NEEDED']||0);
+  d+=200;
+  row(d,'──','────────────────────────────────────','','');
+  row(d+60,'  ',`CONFIRMED:${s.CONFIRMED} PARTIAL:${s.PARTIAL} CONTRADICTED:${s.CONTRADICTED} DRAFT-NEEDED:${s['DRAFT-NEEDED']}`,'','');
+  row(d+120,'  ','Report → evidence/reconciliation-report.json','','');
+  row(d+180,'──','────────────────────────────────────','','');
+
+  showToast(`Done — ${s.CONFIRMED} confirmed, ${s.PARTIAL} partial, ${flagged} need attention`);
+}
+
+// ── SIMULATE INGEST ────────────────────────────────────────────────────────────
+function simIngest() {
+  document.getElementById('scan-ind').style.display='inline-flex';
+  document.querySelectorAll('.ev-fill').forEach(b=>{
+    const t=parseInt(b.dataset.t)||0;
+    if(t>0) b.style.width=Math.min(t+Math.floor(Math.random()*8+2),100)+'%';
+  });
+  if (selectedId) {
+    const ctrl = allControls.find(c=>c.id===selectedId);
+    if (ctrl?.oscalReq) renderOscalJson(ctrl.oscalReq);
+  }
+  showToast('API ingest simulated — evidence slots updated with fresh timestamps. Run ▶ Reconciler to process.');
+  setTimeout(()=>document.getElementById('scan-ind').style.display='none', 2500);
+}
+
+// ── PIPELINE STEPS ─────────────────────────────────────────────────────────────
+const stepInfo = [
+  'excel_to_oscal.py reads a legacy Excel SSP and builds an OSCAL skeleton. Every control gets one evidence slot per tool. UUIDs are deterministic (v5) — same control, same UUID every run, so Git diffs show only content changes.',
+  'wiz_ingest.py connects to the Wiz GraphQL API and pulls raw findings — not compliance posture scores. Each finding maps dynamically to NIST control IDs based on its characteristics, not a pre-declared family boundary.',
+  'jira_ingest.py runs JQL queries: account provisioning tickets with approval chains, change requests with Security Impact Analysis field, incident records, and open POA&M items. Process controls need process evidence.',
+  'tanium_ingest.py pulls endpoint patch compliance against severity SLAs (CRITICAL: 15 days, HIGH: 30 days, MODERATE: 90 days), disk encryption status, and software inventory. CSV fallback for on-prem instances with no API.',
+  'reconcile_oscal.py reads every SSP claim and compares it against all tool evidence slots that have real data (api-ready: true + last-api-pull timestamp). Produces 5 outcomes. Never overwrites the original narrative.',
+  'grc_agent.py (in development) — LLM layer that pre-determines implementation accuracy by reasoning about compensating controls, cross-referencing approved exceptions, and drafting candidate narratives for ISSO review and sign-off.'
+];
+
+function selStep(i, el) {
+  document.querySelectorAll('.p-step').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  showToast(stepInfo[i]);
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function ctrlName(id) {
+  const n={'AC-2':'Account Management','AC-2(3)':'Disable Inactive Accounts','AC-6':'Least Privilege','AC-17':'Remote Access','AU-2':'Event Logging','AU-6':'Audit Review','AU-9':'Audit Protection','AU-11':'Audit Retention','CA-5':'POA&M','CA-7':'Continuous Monitoring','CM-2':'Baseline Configuration','CM-3':'Change Control','CM-6':'Configuration Settings','CM-7':'Least Functionality','CM-8':'Component Inventory','CP-9':'System Backup','IA-2':'Identification & Authentication','IA-2(1)':'MFA — Privileged','IR-3':'IR Testing','IR-5':'Incident Monitoring','IR-6':'Incident Reporting','RA-5':'Vulnerability Monitoring','SA-10':'Developer Config Mgmt','SA-11':'Developer Testing','SC-7':'Boundary Protection','SC-28':'Protection at Rest','SI-2':'Flaw Remediation','SI-4':'System Monitoring','SR-3':'Supply Chain Controls','PS-4':'Personnel Termination'};
+  return n[id]||id;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),4200);}
+function clearLog(){document.getElementById('rec-out').innerHTML='<div class="loading">Hit ▶ Run Reconciler above to see live output</div>';}
+
+init();
+</script>
+</body>
+</html>
