@@ -9,7 +9,7 @@
 
 ## The Core Thesis
 
-The SSP is not a compliance document. It's a plan.
+"Something said in a recent webinar stuck with me — the SSP isn't a compliance document. It's a plan."
 
 It describes the intended implementation of every security control — what tools are responsible, how they're configured, what they're supposed to do for every component in the system. It's the rulebook auditors use to evaluate whether a system's actual capabilities match its claims. And it's supposed to reflect reality.
 
