@@ -1,7 +1,7 @@
 # Security Intelligence Pipeline
 ### Built on OSCAL · Powered by Live Tool Evidence · Compliance as a Byproduct
 
-**[🚀 Live Interactive Demo](https://grcjp.github.io/OSCAL-Conversion-and-Compliance-Pipeline/)** — explore the pipeline, click controls, run the reconciler
+**[🚀 Live Interactive Demo](https://grcjp.github.io/OSCAL-Conversion-and-Compliance-Pipeline/)**  explore the pipeline, click controls, run the reconciler
 
 > *This is not about making compliance easier. It's about knowing what risk you actually carry — and building the infrastructure to close the gap before someone else finds it.*
 
@@ -11,11 +11,11 @@
 
 "Something said in a recent webinar stuck with me — the SSP isn't a compliance document. It's a plan."
 
-It describes the intended implementation of every security control — what tools are responsible, how they're configured, what they're supposed to do for every component in the system. It's the rulebook auditors use to evaluate whether a system's actual capabilities match its claims. And it's supposed to reflect reality.
+It describes the intended implementation of every security control, what tools are responsible, how they're configured, what they're supposed to do for every component in the system. It's the rulebook auditors use to evaluate whether a system's actual capabilities match its claims. And it's supposed to reflect reality.
 
 The operative word is *supposed to*.
 
-In practice, the SSP reflects what was true when someone last updated it — usually right before the last audit. The system evolved. Tools changed. Controls drifted. Nobody updated the plan. So auditors are evaluating against a document that no longer reflects the actual implemented state. Engineers are building without knowing what the security requirements really are. And ISSOs are manually bridging a gap that grows wider every sprint.
+In practice, the SSP reflects what was true when someone last updated it, usually right before the last audit. The system evolved. Tools changed. Controls drifted. Nobody updated the plan. So auditors are evaluating against a document that no longer reflects the actual implemented state. Engineers are building without knowing what the security requirements really are. And ISSOs are manually bridging a gap that grows wider every sprint.
 
 **This pipeline closes that gap — not by automating compliance paperwork, but by continuously reconciling the planned state against the actual state:**
 
